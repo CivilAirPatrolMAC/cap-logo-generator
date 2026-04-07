@@ -28,11 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	logoStyleSelect.onchange = () => {
 		updateSecondaryGraphicAvailability();
-
-		if (logoStyleSelect.value !== 'blue') {
-			clearSecondaryGraphic();
-		}
-
 		renderGraphic();
 	};
 
@@ -42,9 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const updateSecondaryGraphicAvailability = () => {
-	const isBlue = document.getElementById('logoStyle').value === 'blue';
-	document.getElementById('secondaryGraphic').disabled = !isBlue;
-	document.getElementById('clearSecondaryGraphic').disabled = !isBlue;
+	document.getElementById('secondaryGraphic').disabled = false;
+	document.getElementById('clearSecondaryGraphic').disabled = false;
 };
 
 const loadFont = async () => {
@@ -216,17 +210,10 @@ const getResponsiveFontSize = (text, options) => {
 	);
 };
 
-const getSecondaryImageForMode = async (isWhiteVersion) => {
-	if (!secondaryGraphicImage) return null;
-
-	if (!isWhiteVersion || !secondaryGraphicShouldInvertOnWhite) {
-		return secondaryGraphicImage;
-	}
-
-	return await invertImage(secondaryGraphicImage);
+const getSecondaryImageForMode = async () => {
+	return secondaryGraphicImage;
 };
 
-// 🔥 FULL HEIGHT SCALING (your latest requirement)
 const getSecondaryLayout = (img) => {
 	if (!img) {
 		return {
@@ -270,18 +257,12 @@ const renderGraphic = async () => {
 	const selectedStyle = document.getElementById('logoStyle').value;
 
 	const isWhiteVersion = selectedStyle === 'white';
-	const isBlueVersion = !isWhiteVersion;
 	const logoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
 
-	const secondaryImageForMode = isBlueVersion
-		? await getSecondaryImageForMode(isWhiteVersion)
-		: null;
+	const secondaryImageForMode = await getSecondaryImageForMode(isWhiteVersion);
+	const secondaryLayout = getSecondaryLayout(secondaryImageForMode);
 
-	const secondaryLayout = isWhiteVersion
-		? { extraWidth: 0 }
-		: getSecondaryLayout(secondaryImageForMode);
-
-	const canvasWidth = BASE_WIDTH + (secondaryLayout.extraWidth || 0);
+	const canvasWidth = BASE_WIDTH + secondaryLayout.extraWidth;
 	const canvasHeight = BASE_HEIGHT;
 
 	const startX = 600;
@@ -329,7 +310,7 @@ const renderGraphic = async () => {
 
 	drawTrackedText(text, startX, baselineY, tracking);
 
-	if (isBlueVersion && secondaryImageForMode) {
+	if (secondaryImageForMode) {
 		ctx.drawImage(
 			secondaryImageForMode,
 			secondaryLayout.drawX,

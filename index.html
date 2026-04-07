@@ -14,6 +14,7 @@
 		let canvas;
 		let ctx;
 		let capFont;
+		let secondaryGraphicImage = null;
 
 		document.addEventListener('DOMContentLoaded', () => {
 			canvas = document.getElementById('canvas');
@@ -25,6 +26,8 @@
 
 			document.getElementById('subordinateText').oninput = renderGraphic;
 			document.getElementById('logoStyle').onchange = renderGraphic;
+			document.getElementById('secondaryGraphic').onchange = handleSecondaryGraphicUpload;
+			document.getElementById('clearSecondaryGraphic').onclick = clearSecondaryGraphic;
 			document.getElementById('download').onclick = download;
 		});
 
@@ -37,7 +40,7 @@
 		};
 
 		const drawSource = (imagePath) => {
-			return new Promise((resolve) => {
+			return new Promise((resolve, reject) => {
 				const imageSource = new Image();
 
 				imageSource.onload = () => {
@@ -45,8 +48,40 @@
 					resolve();
 				};
 
+				imageSource.onerror = reject;
 				imageSource.src = imagePath;
 			});
+		};
+
+		const handleSecondaryGraphicUpload = (event) => {
+			const file = event.target.files && event.target.files[0];
+
+			if (!file) {
+				secondaryGraphicImage = null;
+				renderGraphic();
+				return;
+			}
+
+			const reader = new FileReader();
+
+			reader.onload = (e) => {
+				const img = new Image();
+
+				img.onload = () => {
+					secondaryGraphicImage = img;
+					renderGraphic();
+				};
+
+				img.src = e.target.result;
+			};
+
+			reader.readAsDataURL(file);
+		};
+
+		const clearSecondaryGraphic = () => {
+			secondaryGraphicImage = null;
+			document.getElementById('secondaryGraphic').value = '';
+			renderGraphic();
 		};
 
 		const measureTrackedText = (str, tracking) => {
@@ -108,6 +143,29 @@
 			);
 		};
 
+		const drawSecondaryGraphic = (baseWidth, canvasHeight) => {
+			if (!secondaryGraphicImage) return;
+
+			const box = {
+				x: baseWidth + 35,
+				y: 70,
+				width: 230,
+				height: 275
+			};
+
+			const imgWidth = secondaryGraphicImage.width;
+			const imgHeight = secondaryGraphicImage.height;
+
+			const scale = Math.min(box.width / imgWidth, box.height / imgHeight);
+			const drawWidth = imgWidth * scale;
+			const drawHeight = imgHeight * scale;
+
+			const drawX = box.x + (box.width - drawWidth) / 2;
+			const drawY = box.y + (box.height - drawHeight) / 2;
+
+			ctx.drawImage(secondaryGraphicImage, drawX, drawY, drawWidth, drawHeight);
+		};
+
 		const renderGraphic = async () => {
 			if (!ctx || !capFont) return;
 
@@ -118,8 +176,10 @@
 			const isWhiteVersion = selectedStyle === 'white';
 			const logoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
 
-			const canvasWidth = 2000;
+			const baseWidth = 2000;
 			const canvasHeight = 415;
+			const extraWidth = secondaryGraphicImage ? 300 : 0;
+			const canvasWidth = baseWidth + extraWidth;
 
 			const startX = 600;
 			const baselineY = 355;
@@ -130,10 +190,9 @@
 
 			const fontFamily = 'Rajdhani';
 			const fontWeight = '700';
-
 			const tracking = 3;
 
-			const availableWidth = canvasWidth - startX - safeRightPadding;
+			const availableWidth = baseWidth - startX - safeRightPadding;
 			const targetFillRatio = 0.98;
 			const maxFontSize = 130;
 			const minFontSize = 50;
@@ -153,17 +212,20 @@
 			canvas.width = canvasWidth;
 			canvas.height = canvasHeight;
 
-			// Clear canvas (no background baked into export)
 			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-			// Toggle preview-only background
 			if (isWhiteVersion) {
 				canvas.classList.add('white-preview');
 			} else {
 				canvas.classList.remove('white-preview');
 			}
 
-			await drawSource(logoFile);
+			try {
+				await drawSource(logoFile);
+			} catch (error) {
+				console.error('Could not load base logo:', error);
+				return;
+			}
 
 			const textColor = isWhiteVersion ? white : capBlue;
 
@@ -175,6 +237,7 @@
 			ctx.font = '700 ' + fontSize + 'px Rajdhani';
 
 			drawTrackedText(text, startX, baselineY, tracking);
+			drawSecondaryGraphic(baseWidth, canvasHeight);
 		};
 
 		const download = () => {
@@ -195,17 +258,75 @@
 	</script>
 
 	<style type="text/css">
+		html, body, div, span, applet, object, iframe,
+		h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+		a, abbr, acronym, address, big, cite, code,
+		del, dfn, em, img, ins, kbd, q, s, samp,
+		small, strike, strong, sub, sup, tt, var,
+		b, u, i, center,
+		dl, dt, dd, ol, ul, li,
+		fieldset, form, label, legend,
+		table, caption, tbody, tfoot, thead, tr, th, td,
+		article, aside, canvas, details, embed,
+		figure, figcaption, footer, header, hgroup,
+		menu, nav, output, ruby, section, summary,
+		time, mark, audio, video {
+			margin: 0;
+			padding: 0;
+			border: 0;
+			font-size: 100%;
+			font: inherit;
+			vertical-align: baseline;
+		}
+
+		article, aside, details, figcaption, figure,
+		footer, header, hgroup, menu, nav, section {
+			display: block;
+		}
+
+		body {
+			line-height: 1;
+		}
+
+		ol, ul {
+			list-style: none;
+		}
+
+		blockquote, q {
+			quotes: none;
+		}
+
+		blockquote:before, blockquote:after,
+		q:before, q:after {
+			content: '';
+			content: none;
+		}
+
+		table {
+			border-collapse: collapse;
+			border-spacing: 0;
+		}
+
 		body {
 			padding: 50px;
-			font-family: "Ubuntu", sans-serif;
-			color: black;
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+			color: rgb(0, 0, 0);
 			line-height: 1.4;
+			font-weight: 400;
+			font-size: 1em;
+		}
+
+		a {
+			color: rgb(0, 20, 137);
 		}
 
 		h1 {
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 			color: #001871;
 			font-size: 30px;
-			margin-bottom: 10px;
+			line-height: 1.3;
+			font-weight: 500;
+			margin: 0 0 10px;
 		}
 
 		p {
@@ -214,67 +335,107 @@
 
 		label {
 			display: block;
-			margin-top: 20px;
-			margin-bottom: 5px;
+			margin-top: 24px;
+			margin-bottom: 8px;
 			font-weight: 500;
 			color: #001871;
 		}
 
-		input, select {
+		input,
+		select {
+			display: block;
 			width: 100%;
 			max-width: 500px;
-			padding: 10px;
-			margin-bottom: 10px;
-			border: 1px solid #9ea2a2;
+			border: 1px solid rgb(158, 162, 162);
 			border-radius: 5px;
+			font-size: 16px;
+			line-height: 1.3;
+			font-weight: 400;
+			padding: 10px 20px;
+			background-color: rgb(255, 255, 255);
+			color: rgb(0, 0, 0);
+			box-sizing: border-box;
+		}
+
+		input[type="file"] {
+			padding: 10px 12px;
 		}
 
 		.canvas-container {
-			width: 600px;
-			height: 161px;
+			width: 100%;
+			max-width: 100%;
 			margin: 30px 0 20px;
+			overflow-x: auto;
+			overflow-y: hidden;
+			padding-bottom: 8px;
 		}
 
 		#canvas {
+			display: block;
 			transform-origin: 0 0;
 			transform: scale(0.3);
-			border: 3px solid #9ea2a2;
+			border: 3px solid rgb(158, 162, 162);
 			padding: 60px;
 			border-radius: 15px;
 			background-color: #ffffff;
+			max-width: none;
 		}
 
-		/* Preview-only background for white version */
 		#canvas.white-preview {
 			background-color: #D9D9D9;
 		}
 
+		.button-row {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+			margin-top: 10px;
+		}
+
 		button {
-			padding: 10px 20px;
-			background-color: #001871;
-			color: white;
-			border: none;
-			cursor: pointer;
+			transition: all 0.2s ease-in-out;
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+			color: rgb(255, 255, 255);
+			font-size: 16px;
+			line-height: 1.3;
+			font-weight: 400;
+			border-width: 2px;
+			border-style: solid;
 			border-radius: 5px;
+			border-color: rgb(0, 17, 123);
+			background-color: rgb(0, 20, 137);
+			padding: 10px 20px;
+			cursor: pointer;
+			user-select: none;
 		}
 
 		button:hover {
-			background-color: #000e66;
+			color: rgb(255, 255, 255);
+			border-color: rgb(0, 12, 92);
+			background-color: rgb(0, 14, 102);
 		}
 
 		footer {
-			color: #9ea2a2;
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+			color: rgb(158, 162, 162);
 			font-size: 12px;
-			margin-top: 40px;
+			padding: 20px 0;
+			margin-top: 50px;
+		}
+
+		footer a {
+			color: inherit;
 		}
 	</style>
 </head>
 <body>
 
-	<h1>Civil Air Patrol Subordinate Graphic Generator</h1>
+	<h1>
+		Civil Air Patrol Subordinate Graphic Generator
+	</h1>
 
 	<p>
-		Using the tool below, you can generate a Civil Air Patrol subordinate unit, activity, or program graphic.
+		Using the tool below, you can generate a Civil Air Patrol subordinate unit, activity or program graphic.
 	</p>
 
 	<p>
@@ -286,7 +447,7 @@
 	</p>
 
 	<p>
-		The secondary line can be only one line and not stacked multiple times.
+		The secondary line can be only one line and not stacked multiple times. Max length shall also be 8 characters beyond the last letter of the first line.
 	</p>
 
 	<p>
@@ -294,22 +455,28 @@
 	</p>
 
 	<label for="subordinateText">Subordinate line</label>
-	<input id="subordinateText" type="text" maxlength="30" value="Marketing & Communication">
+	<input id="subordinateText" type="text" maxlength="30" placeholder="Insert Subordinate Text" value="Marketing & Communication">
 
 	<label for="logoStyle">Logo version</label>
 	<select id="logoStyle">
-		<option value="blue">All Blue</option>
+		<option value="blue" selected>All Blue</option>
 		<option value="white">All White</option>
 	</select>
+
+	<label for="secondaryGraphic">Upload secondary graphic</label>
+	<input id="secondaryGraphic" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml">
 
 	<div class="canvas-container">
 		<canvas id="canvas" width="2000" height="415"></canvas>
 	</div>
 
-	<button id="download">Download</button>
+	<div class="button-row">
+		<button id="download" type="button">Download</button>
+		<button id="clearSecondaryGraphic" type="button">Clear Secondary Graphic</button>
+	</div>
 
 	<footer>
-		Version 10. Last modified on April 7th, 2026. Managed by <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+		Version 8. Last modified on April 7th, 2026. Managed by <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
 	</footer>
 
 </body>

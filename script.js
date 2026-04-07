@@ -227,17 +227,42 @@
 
 			return await invertImage(secondaryGraphicImage);
 		};
+const getSecondaryLayout = (img) => {
+	if (!img) {
+		return {
+			extraWidth: 0,
+			drawX: 0,
+			drawY: 0,
+			drawWidth: 0,
+			drawHeight: 0
+		};
+	}
 
-		const getSecondaryLayout = (img) => {
-			if (!img) {
-				return {
-					extraWidth: 0,
-					drawX: 0,
-					drawY: 0,
-					drawWidth: 0,
-					drawHeight: 0
-				};
-			}
+	const imgWidth = img.width;
+	const imgHeight = img.height;
+
+	// 🔥 KEY CHANGE: scale to FULL HEIGHT of base graphic
+	const scale = BASE_HEIGHT / imgHeight;
+
+	const drawWidth = imgWidth * scale;
+	const drawHeight = BASE_HEIGHT; // exact match
+
+	const extraWidth = Math.ceil(
+		SECONDARY_PADDING_LEFT + drawWidth + SECONDARY_PADDING_RIGHT
+	);
+
+	const drawX = BASE_WIDTH + SECONDARY_PADDING_LEFT;
+	const drawY = 0; // top-aligned
+
+	return {
+		extraWidth,
+		drawX,
+		drawY,
+		drawWidth,
+		drawHeight
+	};
+};
+	
 
 			const imgWidth = img.width;
 			const imgHeight = img.height;

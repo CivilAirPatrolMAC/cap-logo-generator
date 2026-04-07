@@ -13,55 +13,50 @@
 	<script type="text/javascript">
 		let canvas;
 		let ctx;
-		let text = '';
+		let capFont;
 
 		document.addEventListener('DOMContentLoaded', () => {
 			canvas = document.getElementById('canvas');
 			ctx = canvas.getContext('2d');
 
-			drawSource();
-			drawText('Insert Text Here');
+			loadFont().then(() => {
+				renderGraphic();
+			});
 
-			document.getElementById('download').onclick = () => {
-				download();
-			};
-
-			document.getElementById('text').oninput = () => {
-				const tmpText = document.getElementById('text').value;
-
-				clear();
-				drawSource();
-				drawText(tmpText);
-			};
+			document.getElementById('primaryText').oninput = renderGraphic;
+			document.getElementById('subordinateText').oninput = renderGraphic;
+			document.getElementById('download').onclick = download;
 		});
 
-		const drawSource = () => {
-			const imageSource = new Image();
+		const loadFont = async () => {
+			if (capFont) return;
 
-			imageSource.onload = () => {
-				ctx.drawImage(imageSource, 0, 0, 2000, 415, 0, 0, 2000, 415);
-			};
-
-			imageSource.src = 'source.svg';
+			const fontSource = new FontFace('Rajdhani', 'url(font.woff2)');
+			capFont = await fontSource.load();
+			document.fonts.add(capFont);
 		};
 
-		const drawTrackedText = (str, startX, y, tracking) => {
-			let x = startX;
+		const drawSource = () => {
+			return new Promise((resolve) => {
+				const imageSource = new Image();
 
-			for (let i = 0; i < str.length; i++) {
-				const char = str[i];
-				ctx.fillText(char, x, y);
-				x += ctx.measureText(char).width + tracking;
-			}
+				imageSource.onload = () => {
+					ctx.drawImage(imageSource, 0, 0, 2000, 415, 0, 0, 2000, 415);
+					resolve();
+				};
 
-			return x - startX;
+				imageSource.src = 'source.svg';
+			});
 		};
 
 		const measureTrackedText = (str, tracking) => {
+			if (!str.length) return 0;
+
 			let width = 0;
 
 			for (let i = 0; i < str.length; i++) {
 				width += ctx.measureText(str[i]).width;
+
 				if (i < str.length - 1) {
 					width += tracking;
 				}
@@ -70,43 +65,69 @@
 			return width;
 		};
 
-		const drawText = (str) => {
-			const fontSource = new FontFace('Rajdhani', 'url(font.woff2)');
+		const drawTrackedText = (str, startX, baselineY, tracking) => {
+			let x = startX;
 
-			fontSource.load().then((font) => {
-				document.fonts.add(font);
+			for (let i = 0; i < str.length; i++) {
+				const char = str[i];
+				ctx.fillText(char, x, baselineY);
+				x += ctx.measureText(char).width + tracking;
+			}
+		};
 
-				text = str.toUpperCase();
+		const renderGraphic = async () => {
+			if (!ctx || !capFont) return;
 
-				// 15pt ~= 20px
-				const fontSizePx = 20;
-				const tracking = 25;
-				const startX = 591;
-				const baselineY = 383;
+			const primaryInput = document.getElementById('primaryText').value || 'Insert Primary Text';
+			const subordinateInput = document.getElementById('subordinateText').value || 'Subordinate';
 
-				ctx.fillStyle = '#001871';
-				ctx.font = 'bold ' + fontSizePx + 'px Rajdhani';
+			const primaryText = primaryInput.toUpperCase();
+			const subordinateText = subordinateInput.toUpperCase();
 
-				const textWidth = measureTrackedText(text, tracking);
+			const startX = 591;
+			const capBlue = '#001871';
+			const tracking = 25;
 
-				if (textWidth > 1410) {
-					canvas.width = 591 + textWidth + 50;
-				} else {
-					canvas.width = 2000;
-				}
+			// Hierarchy
+			const primaryFontSize = 136;
+			const subordinateFontSize = 72;
 
-				drawSource();
+			// Vertical positions
+			const primaryBaselineY = 285;
+			const subordinateBaselineY = 383;
 
-				ctx.fillStyle = '#001871';
-				ctx.font = 'bold ' + fontSizePx + 'px Rajdhani';
+			// Measure primary
+			ctx.font = 'bold ' + primaryFontSize + 'px Rajdhani';
+			const primaryWidth = measureTrackedText(primaryText, tracking);
 
-				drawTrackedText(text, startX, baselineY, tracking);
-			});
+			// Measure subordinate
+			ctx.font = 'bold ' + subordinateFontSize + 'px Rajdhani';
+			const subordinateWidth = measureTrackedText(subordinateText, tracking);
+
+			const widestText = Math.max(primaryWidth, subordinateWidth);
+			const minimumCanvasWidth = 2000;
+			const neededWidth = startX + widestText + 50;
+
+			canvas.width = Math.max(minimumCanvasWidth, neededWidth);
+			canvas.height = 415;
+
+			await drawSource();
+
+			ctx.fillStyle = capBlue;
+
+			// Draw primary line
+			ctx.font = 'bold ' + primaryFontSize + 'px Rajdhani';
+			drawTrackedText(primaryText, startX, primaryBaselineY, tracking);
+
+			// Draw subordinate line
+			ctx.font = 'bold ' + subordinateFontSize + 'px Rajdhani';
+			drawTrackedText(subordinateText, startX, subordinateBaselineY, tracking);
 		};
 
 		const download = () => {
 			const tmpLink = document.createElement('a');
 			let e;
+
 			tmpLink.download = 'Graphic.png';
 			tmpLink.href = canvas.toDataURL('image/png');
 
@@ -117,10 +138,6 @@
 			} else if (tmpLink.fireEvent) {
 				tmpLink.fireEvent('onclick');
 			}
-		};
-
-		const clear = () => {
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
 		};
 	</script>
 
@@ -200,7 +217,18 @@
 			margin: 10px 0;
 		}
 
+		label {
+			display: block;
+			margin-top: 24px;
+			margin-bottom: 8px;
+			font-weight: 500;
+			color: #001871;
+		}
+
 		input {
+			display: block;
+			width: 100%;
+			max-width: 500px;
 			border: 1px solid rgb(158, 162, 162);
 			border-radius: 5px;
 			font-size: 16px;
@@ -209,13 +237,12 @@
 			padding: 10px 20px;
 			background-color: rgb(255, 255, 255);
 			color: rgb(0, 0, 0);
-			margin-top: 50px;
 		}
 
 		.canvas-container {
 			width: 600px;
 			height: 161px;
-			margin: 20px 0;
+			margin: 30px 0 20px;
 		}
 
 		#canvas {
@@ -287,7 +314,11 @@
 		Please refer to the CAP Brand Portal for additional information and guidance.
 	</p>
 
-	<input id="text" type="text" placeholder="Insert Text Here" maxlength="26" />
+	<label for="primaryText">Primary line</label>
+	<input id="primaryText" type="text" placeholder="Insert Primary Text" maxlength="40" value="Insert Primary Text" />
+
+	<label for="subordinateText">Subordinate line</label>
+	<input id="subordinateText" type="text" placeholder="Insert Subordinate Text" maxlength="26" value="Subordinate" />
 
 	<div class="canvas-container">
 		<canvas id="canvas" width="2000" height="415"></canvas>

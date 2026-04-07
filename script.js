@@ -1,4 +1,3 @@
-<script type="text/javascript">
 		let canvas;
 		let ctx;
 		let capFont;
@@ -360,4 +359,3 @@
 			a.href = canvas.toDataURL('image/png');
 			a.click();
 		};
-	</script>

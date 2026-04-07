@@ -3,9 +3,12 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<title>Civil Air Patrol Graphic Generator</title>
+	<title>Civil Air Patrol Subordinate Graphic Generator</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="shortcut icon" href="favicon.png">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500&display=block" rel="stylesheet">
 
 	<script type="text/javascript">
 		let canvas;
@@ -20,7 +23,8 @@
 				renderGraphic();
 			});
 
-			document.getElementById('text').oninput = renderGraphic;
+			document.getElementById('primaryText').oninput = renderGraphic;
+			document.getElementById('subordinateText').oninput = renderGraphic;
 			document.getElementById('download').onclick = download;
 		});
 
@@ -46,11 +50,16 @@
 		};
 
 		const measureTrackedText = (str, tracking) => {
+			if (!str.length) return 0;
+
 			let width = 0;
 
 			for (let i = 0; i < str.length; i++) {
 				width += ctx.measureText(str[i]).width;
-				if (i < str.length - 1) width += tracking;
+
+				if (i < str.length - 1) {
+					width += tracking;
+				}
 			}
 
 			return width;
@@ -69,97 +78,257 @@
 		const renderGraphic = async () => {
 			if (!ctx || !capFont) return;
 
-			const input = document.getElementById('text').value || 'Insert Text Here';
-			const text = input.toUpperCase();
+			const primaryInput = document.getElementById('primaryText').value || 'Insert Primary Text';
+			const subordinateInput = document.getElementById('subordinateText').value || 'Subordinate';
+
+			const primaryText = primaryInput.toUpperCase();
+			const subordinateText = subordinateInput.toUpperCase();
 
 			const startX = 591;
-			const baselineY = 360; // safely below emblem
-			const tracking = 25;
-			const fontSize = 120; // scaled to fit cleanly
 			const capBlue = '#001871';
+			const tracking = 25;
 
-			ctx.font = 'bold ' + fontSize + 'px Rajdhani';
-			const textWidth = measureTrackedText(text, tracking);
+			// Hierarchy
+			const primaryFontSize = 136;
+			const subordinateFontSize = 72;
 
-			const neededWidth = startX + textWidth + 50;
+			// Vertical positions
+			const primaryBaselineY = 285;
+			const subordinateBaselineY = 383;
 
-			canvas.width = Math.max(2000, neededWidth);
+			// Measure primary
+			ctx.font = 'bold ' + primaryFontSize + 'px Rajdhani';
+			const primaryWidth = measureTrackedText(primaryText, tracking);
+
+			// Measure subordinate
+			ctx.font = 'bold ' + subordinateFontSize + 'px Rajdhani';
+			const subordinateWidth = measureTrackedText(subordinateText, tracking);
+
+			const widestText = Math.max(primaryWidth, subordinateWidth);
+			const minimumCanvasWidth = 2000;
+			const neededWidth = startX + widestText + 50;
+
+			canvas.width = Math.max(minimumCanvasWidth, neededWidth);
 			canvas.height = 415;
 
 			await drawSource();
 
 			ctx.fillStyle = capBlue;
-			ctx.font = 'bold ' + fontSize + 'px Rajdhani';
 
-			drawTrackedText(text, startX, baselineY, tracking);
+			// Draw primary line
+			ctx.font = 'bold ' + primaryFontSize + 'px Rajdhani';
+			drawTrackedText(primaryText, startX, primaryBaselineY, tracking);
+
+			// Draw subordinate line
+			ctx.font = 'bold ' + subordinateFontSize + 'px Rajdhani';
+			drawTrackedText(subordinateText, startX, subordinateBaselineY, tracking);
 		};
 
 		const download = () => {
 			const tmpLink = document.createElement('a');
+			let e;
+
 			tmpLink.download = 'Graphic.png';
 			tmpLink.href = canvas.toDataURL('image/png');
 
-			const e = document.createEvent('MouseEvents');
-			e.initMouseEvent('click', true, true, window);
-			tmpLink.dispatchEvent(e);
+			if (document.createEvent) {
+				e = document.createEvent('MouseEvents');
+				e.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+				tmpLink.dispatchEvent(e);
+			} else if (tmpLink.fireEvent) {
+				tmpLink.fireEvent('onclick');
+			}
 		};
 	</script>
 
-	<style>
+	<style type="text/css">
+		html, body, div, span, applet, object, iframe,
+		h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+		a, abbr, acronym, address, big, cite, code,
+		del, dfn, em, img, ins, kbd, q, s, samp,
+		small, strike, strong, sub, sup, tt, var,
+		b, u, i, center,
+		dl, dt, dd, ol, ul, li,
+		fieldset, form, label, legend,
+		table, caption, tbody, tfoot, thead, tr, th, td,
+		article, aside, canvas, details, embed,
+		figure, figcaption, footer, header, hgroup,
+		menu, nav, output, ruby, section, summary,
+		time, mark, audio, video {
+			margin: 0;
+			padding: 0;
+			border: 0;
+			font-size: 100%;
+			font: inherit;
+			vertical-align: baseline;
+		}
+
+		article, aside, details, figcaption, figure,
+		footer, header, hgroup, menu, nav, section {
+			display: block;
+		}
+
+		body {
+			line-height: 1;
+		}
+
+		ol, ul {
+			list-style: none;
+		}
+
+		blockquote, q {
+			quotes: none;
+		}
+
+		blockquote:before, blockquote:after,
+		q:before, q:after {
+			content: '';
+			content: none;
+		}
+
+		table {
+			border-collapse: collapse;
+			border-spacing: 0;
+		}
+
 		body {
 			padding: 50px;
-			font-family: Arial, sans-serif;
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+			color: rgb(0, 0, 0);
+			line-height: 1.4;
+			font-weight: 400;
+			font-size: 1em;
+		}
+
+		a {
+			color: rgb(0, 20, 137);
 		}
 
 		h1 {
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 			color: #001871;
-			margin-bottom: 10px;
+			font-size: 30px;
+			line-height: 1.3;
+			font-weight: 500;
+			margin: 0 0 10px;
+		}
+
+		p {
+			margin: 10px 0;
+		}
+
+		label {
+			display: block;
+			margin-top: 24px;
+			margin-bottom: 8px;
+			font-weight: 500;
+			color: #001871;
 		}
 
 		input {
-			margin-top: 20px;
-			padding: 10px 20px;
-			font-size: 16px;
+			display: block;
+			width: 100%;
+			max-width: 500px;
+			border: 1px solid rgb(158, 162, 162);
 			border-radius: 5px;
-			border: 1px solid #ccc;
-			width: 400px;
+			font-size: 16px;
+			line-height: 1.3;
+			font-weight: 400;
+			padding: 10px 20px;
+			background-color: rgb(255, 255, 255);
+			color: rgb(0, 0, 0);
 		}
 
 		.canvas-container {
-			margin: 30px 0;
+			width: 600px;
+			height: 161px;
+			margin: 30px 0 20px;
 		}
 
 		#canvas {
-			transform: scale(0.3);
 			transform-origin: 0 0;
-			border: 2px solid #ccc;
-			padding: 40px;
-			border-radius: 10px;
+			transform: scale(0.3);
+			border: 3px solid rgb(158, 162, 162);
+			padding: 60px;
+			border-radius: 15px;
 		}
 
 		button {
-			padding: 10px 20px;
-			background-color: #001871;
-			color: white;
-			border: none;
+			transition: all 0.2s ease-in-out;
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+			color: rgb(255, 255, 255);
+			font-size: 16px;
+			line-height: 1.3;
+			font-weight: 400;
+			border-width: 2px;
 			border-radius: 5px;
+			border-color: rgb(0, 17, 123);
+			background-color: rgb(0, 20, 137);
+			padding: 10px 20px;
 			cursor: pointer;
+			user-select: none;
+		}
+
+		button:hover {
+			color: rgb(255, 255, 255);
+			border-color: rgb(0, 12, 92);
+			background-color: rgb(0, 14, 102);
+		}
+
+		footer {
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+			color: rgb(158, 162, 162);
+			font-size: 12px;
+			padding: 20px 0;
+			margin-top: 50px;
+		}
+
+		footer a {
+			color: inherit;
 		}
 	</style>
 </head>
 <body>
 
-	<h1>CAP Graphic Generator</h1>
+	<h1>
+		Civil Air Patrol Subordinate Graphic Generator
+	</h1>
 
-	<p>Generate a single-line Civil Air Patrol graphic.</p>
+	<p>
+		Using the tool below, you can generate a Civil Air Patrol subordinate unit, activity or program graphic.
+	</p>
 
-	<input id="text" type="text" placeholder="Insert Text Here" maxlength="26" />
+	<p>
+		Squadron names may only be shortened by using abbreviations for the type of unit, such as "Cdt. Sq.", "Comp. Sq.", or "Sr. Sq." as appropriate. The shorter abbreviation "Sq." may be used for all squadron types.
+	</p>
+
+	<p>
+		Do not use or include a unit charter number (e.g. "SWR-TX-388").
+	</p>
+
+	<p>
+		The secondary line can be only one line and not stacked multiple times. Max length shall also be 8 characters beyond the last letter of the first line.
+	</p>
+
+	<p>
+		Please refer to the CAP Brand Portal for additional information and guidance.
+	</p>
+
+	<label for="primaryText">Primary line</label>
+	<input id="primaryText" type="text" placeholder="Insert Primary Text" maxlength="40" value="Insert Primary Text" />
+
+	<label for="subordinateText">Subordinate line</label>
+	<input id="subordinateText" type="text" placeholder="Insert Subordinate Text" maxlength="26" value="Subordinate" />
 
 	<div class="canvas-container">
 		<canvas id="canvas" width="2000" height="415"></canvas>
 	</div>
 
 	<button id="download">Download</button>
+
+	<footer>
+		Version 7. Last modified on March 2nd, 2026. Managed by <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+	</footer>
 
 </body>
 </html>

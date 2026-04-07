@@ -11,114 +11,149 @@
 	<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500&display=block" rel="stylesheet">
 
 	<script type="text/javascript">
-		let canvas;
-		let ctx;
-		let capFont;
+	let canvas;
+	let ctx;
+	let capFont;
 
-		document.addEventListener('DOMContentLoaded', () => {
-			canvas = document.getElementById('canvas');
-			ctx = canvas.getContext('2d');
+	document.addEventListener('DOMContentLoaded', () => {
+		canvas = document.getElementById('canvas');
+		ctx = canvas.getContext('2d');
 
-			loadFont().then(() => {
-				renderGraphic();
-			});
-
-			document.getElementById('subordinateText').oninput = renderGraphic;
-			document.getElementById('download').onclick = download;
+		loadFont().then(() => {
+			renderGraphic();
 		});
 
-		const loadFont = async () => {
-			if (capFont) return;
+		document.getElementById('subordinateText').oninput = renderGraphic;
+		document.getElementById('download').onclick = download;
+	});
 
-			const fontSource = new FontFace('Rajdhani', 'url(font.woff2)');
-			capFont = await fontSource.load();
-			document.fonts.add(capFont);
-		};
+	const loadFont = async () => {
+		if (capFont) return;
 
-		const drawSource = () => {
-			return new Promise((resolve) => {
-				const imageSource = new Image();
+		const fontSource = new FontFace('Rajdhani', 'url(font.woff2)');
+		capFont = await fontSource.load();
+		document.fonts.add(capFont);
+	};
 
-				imageSource.onload = () => {
-					ctx.drawImage(imageSource, 0, 0, 2000, 415, 0, 0, 2000, 415);
-					resolve();
-				};
+	const drawSource = () => {
+		return new Promise((resolve) => {
+			const imageSource = new Image();
 
-				imageSource.src = 'source.svg';
-			});
-		};
+			imageSource.onload = () => {
+				ctx.drawImage(imageSource, 0, 0, 2000, 415, 0, 0, 2000, 415);
+				resolve();
+			};
 
-		const measureTrackedText = (str, tracking) => {
-			if (!str.length) return 0;
+			imageSource.src = 'source.svg';
+		});
+	};
 
-			let width = 0;
+	const measureTrackedText = (str, tracking) => {
+		if (!str.length) return 0;
 
-			for (let i = 0; i < str.length; i++) {
-				width += ctx.measureText(str[i]).width;
-				if (i < str.length - 1) {
-					width += tracking;
-				}
+		let width = 0;
+
+		for (let i = 0; i < str.length; i++) {
+			width += ctx.measureText(str[i]).width;
+
+			if (i < str.length - 1) {
+				width += tracking;
 			}
+		}
 
-			return width;
-		};
+		return width;
+	};
 
-		const drawTrackedText = (str, startX, baselineY, tracking) => {
-			let x = startX;
+	const drawTrackedText = (str, startX, baselineY, tracking) => {
+		let x = startX;
 
-			for (let i = 0; i < str.length; i++) {
-				const char = str[i];
-				ctx.fillText(char, x, baselineY);
-				x += ctx.measureText(char).width + tracking;
+		for (let i = 0; i < str.length; i++) {
+			const char = str[i];
+			ctx.fillText(char, x, baselineY);
+			x += ctx.measureText(char).width + tracking;
+		}
+	};
+
+	const getFittedFontSize = (text, options) => {
+		const {
+			fontFamily,
+			fontWeight,
+			tracking,
+			maxWidth,
+			maxFontSize,
+			minFontSize
+		} = options;
+
+		for (let fontSize = maxFontSize; fontSize >= minFontSize; fontSize--) {
+			ctx.font = fontWeight + ' ' + fontSize + 'px ' + fontFamily;
+			const width = measureTrackedText(text, tracking);
+
+			if (width <= maxWidth) {
+				return fontSize;
 			}
-		};
+		}
 
-		const renderGraphic = async () => {
-			if (!ctx || !capFont) return;
+		return minFontSize;
+	};
 
-			const subordinateInput = document.getElementById('subordinateText').value || 'Marketing & Communications';
-			const subordinateText = subordinateInput;
+	const renderGraphic = async () => {
+		if (!ctx || !capFont) return;
 
-			// Flush-left with the main text/image block
-			const subordinateStartX = 591;
+		const subordinateInput = document.getElementById('subordinateText').value || 'Marketing & Communications';
+		const subordinateText = subordinateInput;
 
-			// Official-style subordinate appearance
-			const subordinateFontSize = 79;
-			const subordinateTracking = 0;
-			const subordinateBaselineY = 330;
-			const capBlue = '#001871';
+		const subordinateStartX = 591;
+		const subordinateBaselineY = 330;
+		const subordinateTracking = 0;
+		const capBlue = '#001871';
 
-			ctx.font = 'bold ' + subordinateFontSize + 'px Rajdhani';
-			const subordinateWidth = measureTrackedText(subordinateText, subordinateTracking);
+		// Keep the original banner size and fit text within the safe text area
+		const canvasWidth = 2000;
+		const canvasHeight = 415;
+		const safeRightPadding = 0;
+		const maxTextWidth = canvasWidth - subordinateStartX - safeRightPadding;
 
-			const farthestRight = subordinateStartX + subordinateWidth;
-			canvas.width = Math.max(2000, farthestRight + 50);
-			canvas.height = 415;
+		// Match official look, but scale down automatically when needed
+		const maxFontSize = 79;
+		const minFontSize = 24;
+		const fontFamily = 'Rajdhani';
+		const fontWeight = 'bold';
 
-			await drawSource();
+		const subordinateFontSize = getFittedFontSize(subordinateText, {
+			fontFamily,
+			fontWeight,
+			tracking: subordinateTracking,
+			maxWidth: maxTextWidth,
+			maxFontSize,
+			minFontSize
+		});
 
-			ctx.fillStyle = capBlue;
-			ctx.font = 'bold ' + subordinateFontSize + 'px Rajdhani';
-			drawTrackedText(subordinateText, subordinateStartX, subordinateBaselineY, subordinateTracking);
-		};
+		canvas.width = canvasWidth;
+		canvas.height = canvasHeight;
 
-		const download = () => {
-			const tmpLink = document.createElement('a');
-			let e;
+		await drawSource();
 
-			tmpLink.download = 'Graphic.png';
-			tmpLink.href = canvas.toDataURL('image/png');
+		ctx.fillStyle = capBlue;
+		ctx.font = fontWeight + ' ' + subordinateFontSize + 'px ' + fontFamily;
+		drawTrackedText(subordinateText, subordinateStartX, subordinateBaselineY, subordinateTracking);
+	};
 
-			if (document.createEvent) {
-				e = document.createEvent('MouseEvents');
-				e.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-				tmpLink.dispatchEvent(e);
-			} else if (tmpLink.fireEvent) {
-				tmpLink.fireEvent('onclick');
-			}
-		};
-	</script>
+	const download = () => {
+		const tmpLink = document.createElement('a');
+		let e;
 
+		tmpLink.download = 'Graphic.png';
+		tmpLink.href = canvas.toDataURL('image/png');
+
+		if (document.createEvent) {
+			e = document.createEvent('MouseEvents');
+			e.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+			tmpLink.dispatchEvent(e);
+		} else if (tmpLink.fireEvent) {
+			tmpLink.fireEvent('onclick');
+		}
+	};
+</script>
 	<style type="text/css">
 		html, body, div, span, applet, object, iframe,
 		h1, h2, h3, h4, h5, h6, p, blockquote, pre,

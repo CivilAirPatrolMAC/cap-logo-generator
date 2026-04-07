@@ -15,7 +15,7 @@
 		let ctx;
 		let capFont;
 
-		let secondaryGraphicProcessed = null;
+		let secondaryGraphicImage = null;
 		let secondaryGraphicShouldInvertOnWhite = false;
 
 		const BASE_WIDTH = 2000;
@@ -34,7 +34,6 @@
 			const logoStyleSelect = document.getElementById('logoStyle');
 			const secondaryInput = document.getElementById('secondaryGraphic');
 			const clearButton = document.getElementById('clearSecondaryGraphic');
-			const downloadButton = document.getElementById('download');
 
 			loadFont().then(() => {
 				updateSecondaryGraphicAvailability();
@@ -42,6 +41,7 @@
 			});
 
 			subordinateTextInput.oninput = renderGraphic;
+
 			logoStyleSelect.onchange = () => {
 				updateSecondaryGraphicAvailability();
 
@@ -54,18 +54,13 @@
 
 			secondaryInput.onchange = handleSecondaryGraphicUpload;
 			clearButton.onclick = clearSecondaryGraphic;
-			downloadButton.onclick = download;
+			document.getElementById('download').onclick = download;
 		});
 
 		const updateSecondaryGraphicAvailability = () => {
-			const logoStyleSelect = document.getElementById('logoStyle');
-			const secondaryInput = document.getElementById('secondaryGraphic');
-			const clearButton = document.getElementById('clearSecondaryGraphic');
-
-			const isBlue = logoStyleSelect.value === 'blue';
-
-			secondaryInput.disabled = !isBlue;
-			clearButton.disabled = !isBlue;
+			const isBlue = document.getElementById('logoStyle').value === 'blue';
+			document.getElementById('secondaryGraphic').disabled = !isBlue;
+			document.getElementById('clearSecondaryGraphic').disabled = !isBlue;
 		};
 
 		const loadFont = async () => {
@@ -78,26 +73,26 @@
 
 		const drawSource = (imagePath) => {
 			return new Promise((resolve, reject) => {
-				const imageSource = new Image();
+				const img = new Image();
 
-				imageSource.onload = () => {
-					ctx.drawImage(imageSource, 0, 0, BASE_WIDTH, BASE_HEIGHT, 0, 0, BASE_WIDTH, BASE_HEIGHT);
+				img.onload = () => {
+					ctx.drawImage(img, 0, 0, BASE_WIDTH, BASE_HEIGHT);
 					resolve();
 				};
 
-				imageSource.onerror = reject;
-				imageSource.src = imagePath;
+				img.onerror = reject;
+				img.src = imagePath;
 			});
 		};
 
 		const clearSecondaryGraphic = () => {
-			secondaryGraphicProcessed = null;
+			secondaryGraphicImage = null;
 			secondaryGraphicShouldInvertOnWhite = false;
 			document.getElementById('secondaryGraphic').value = '';
 			renderGraphic();
 		};
 
-		const createCanvasFromImage = (img) => {
+		const analyzeDarkLogo = (img) => {
 			const tempCanvas = document.createElement('canvas');
 			const tempCtx = tempCanvas.getContext('2d');
 
@@ -105,39 +100,10 @@
 			tempCanvas.height = img.height;
 			tempCtx.drawImage(img, 0, 0);
 
-			return { tempCanvas, tempCtx };
-		};
+			const data = tempCtx.getImageData(0, 0, img.width, img.height).data;
 
-		const removeNearWhiteBackground = (img) => {
-			const { tempCanvas, tempCtx } = createCanvasFromImage(img);
-			const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-			const data = imageData.data;
-
-			for (let i = 0; i < data.length; i += 4) {
-				const r = data[i];
-				const g = data[i + 1];
-				const b = data[i + 2];
-				const a = data[i + 3];
-
-				if (a === 0) continue;
-
-				if (r > 240 && g > 240 && b > 240) {
-					data[i + 3] = 0;
-				}
-			}
-
-			tempCtx.putImageData(imageData, 0, 0);
-			return tempCanvas;
-		};
-
-		const analyzeDarkLogo = (sourceCanvas) => {
-			const analyzeCtx = sourceCanvas.getContext('2d');
-			const imageData = analyzeCtx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
-			const data = imageData.data;
-
-			let opaquePixels = 0;
-			let darkPixels = 0;
-			let totalLuminance = 0;
+			let total = 0;
+			let dark = 0;
 
 			for (let i = 0; i < data.length; i += 4) {
 				const r = data[i];
@@ -147,73 +113,56 @@
 
 				if (a < 20) continue;
 
-				opaquePixels++;
-
-				const luminance = (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
-				totalLuminance += luminance;
+				total++;
+				const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 
 				if (luminance < 110) {
-					darkPixels++;
+					dark++;
 				}
 			}
 
-			if (!opaquePixels) return false;
-
-			const averageLuminance = totalLuminance / opaquePixels;
-			const darkRatio = darkPixels / opaquePixels;
-
-			return averageLuminance < 140 || darkRatio > 0.45;
+			return total && (dark / total > 0.4);
 		};
 
-		const invertCanvasPreserveAlpha = (sourceCanvas) => {
-			const outCanvas = document.createElement('canvas');
-			const outCtx = outCanvas.getContext('2d');
-
-			outCanvas.width = sourceCanvas.width;
-			outCanvas.height = sourceCanvas.height;
-			outCtx.drawImage(sourceCanvas, 0, 0);
-
-			const imageData = outCtx.getImageData(0, 0, outCanvas.width, outCanvas.height);
-			const data = imageData.data;
-
-			for (let i = 0; i < data.length; i += 4) {
-				const a = data[i + 3];
-				if (a === 0) continue;
-
-				data[i] = 255 - data[i];
-				data[i + 1] = 255 - data[i + 1];
-				data[i + 2] = 255 - data[i + 2];
-			}
-
-			outCtx.putImageData(imageData, 0, 0);
-			return outCanvas;
-		};
-
-		const canvasToImage = (sourceCanvas) => {
+		const invertImage = (img) => {
 			return new Promise((resolve) => {
-				const img = new Image();
-				img.onload = () => resolve(img);
-				img.src = sourceCanvas.toDataURL('image/png');
+				const tempCanvas = document.createElement('canvas');
+				const tempCtx = tempCanvas.getContext('2d');
+
+				tempCanvas.width = img.width;
+				tempCanvas.height = img.height;
+				tempCtx.drawImage(img, 0, 0);
+
+				const imageData = tempCtx.getImageData(0, 0, img.width, img.height);
+				const data = imageData.data;
+
+				for (let i = 0; i < data.length; i += 4) {
+					if (data[i + 3] === 0) continue;
+					data[i] = 255 - data[i];
+					data[i + 1] = 255 - data[i + 1];
+					data[i + 2] = 255 - data[i + 2];
+				}
+
+				tempCtx.putImageData(imageData, 0, 0);
+
+				const newImg = new Image();
+				newImg.onload = () => resolve(newImg);
+				newImg.src = tempCanvas.toDataURL('image/png');
 			});
 		};
 
 		const handleSecondaryGraphicUpload = (event) => {
-			const file = event.target.files && event.target.files[0];
-
-			if (!file) {
-				clearSecondaryGraphic();
-				return;
-			}
+			const file = event.target.files[0];
+			if (!file) return;
 
 			const reader = new FileReader();
 
 			reader.onload = (e) => {
 				const img = new Image();
 
-				img.onload = async () => {
-					const transparentCanvas = removeNearWhiteBackground(img);
-					secondaryGraphicShouldInvertOnWhite = analyzeDarkLogo(transparentCanvas);
-					secondaryGraphicProcessed = await canvasToImage(transparentCanvas);
+				img.onload = () => {
+					secondaryGraphicImage = img;
+					secondaryGraphicShouldInvertOnWhite = analyzeDarkLogo(img);
 					renderGraphic();
 				};
 
@@ -283,21 +232,13 @@
 		};
 
 		const getSecondaryImageForMode = async (isWhiteVersion) => {
-			if (!secondaryGraphicProcessed) return null;
+			if (!secondaryGraphicImage) return null;
 
 			if (!isWhiteVersion || !secondaryGraphicShouldInvertOnWhite) {
-				return secondaryGraphicProcessed;
+				return secondaryGraphicImage;
 			}
 
-			const tempCanvas = document.createElement('canvas');
-			const tempCtx = tempCanvas.getContext('2d');
-
-			tempCanvas.width = secondaryGraphicProcessed.width;
-			tempCanvas.height = secondaryGraphicProcessed.height;
-			tempCtx.drawImage(secondaryGraphicProcessed, 0, 0);
-
-			const invertedCanvas = invertCanvasPreserveAlpha(tempCanvas);
-			return await canvasToImage(invertedCanvas);
+			return await invertImage(secondaryGraphicImage);
 		};
 
 		const getSecondaryLayout = (img) => {
@@ -426,19 +367,10 @@
 		};
 
 		const download = () => {
-			const tmpLink = document.createElement('a');
-			let e;
-
-			tmpLink.download = 'Graphic.png';
-			tmpLink.href = canvas.toDataURL('image/png');
-
-			if (document.createEvent) {
-				e = document.createEvent('MouseEvents');
-				e.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-				tmpLink.dispatchEvent(e);
-			} else if (tmpLink.fireEvent) {
-				tmpLink.fireEvent('onclick');
-			}
+			const a = document.createElement('a');
+			a.download = 'Graphic.png';
+			a.href = canvas.toDataURL('image/png');
+			a.click();
 		};
 	</script>
 
@@ -485,6 +417,7 @@
 		}
 
 		h1 {
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 			color: #001871;
 			font-size: 30px;
 			line-height: 1.3;
@@ -576,6 +509,7 @@
 		}
 
 		footer {
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 			color: rgb(158, 162, 162);
 			font-size: 12px;
 			padding: 20px 0;
@@ -623,9 +557,6 @@
 	</select>
 
 	<label for="secondaryGraphic">Upload secondary graphic</label>
-		 <div id="title_warning" class="subtle-warning" aria-live="polite">
-          Only use approved Region, Wing, and Squadron emblematics. Special activities must use the host region or wing emblematic they are located in.
-        </div>
 	<input id="secondaryGraphic" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml">
 
 	<div class="canvas-container">
@@ -638,7 +569,7 @@
 	</div>
 
 	<footer>
-		Version 8. Last modified on April 7th, 2026. Managed by <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+		Version 11. Last modified on April 7th, 2026. Managed by <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
 	</footer>
 
 </body>

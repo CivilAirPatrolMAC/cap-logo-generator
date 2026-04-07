@@ -134,10 +134,10 @@
 
 			// Scale large for short text, but stop before it gets too tall
 			const availableWidth = canvasWidth - startX - safeRightPadding;
-			const targetFillRatio = 0.95;
+			const targetFillRatio = 0.98;
 			const maxFontSize = 130;
 			const minFontSize = 50;
-			const maxTextHeight = 52;
+			const maxTextHeight = 80;
 
 			const fontSize = getResponsiveFontSize(text, {
 				fontFamily,

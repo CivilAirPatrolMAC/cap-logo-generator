@@ -61,7 +61,6 @@ const emblemOptions = [
 	{ value: 'ohio', label: 'Ohio', type: 'State', path: '', available: false },
 	{ value: 'oklahoma', label: 'Oklahoma', type: 'State', path: '', available: false },
 	{ value: 'oregon', label: 'Oregon', type: 'State', path: '', available: false },
-	{ value: 'overseas', label: 'Overseas', type: 'State', path: '', available: false },
 	{ value: 'pennsylvania', label: 'Pennsylvania', type: 'State', path: '', available: false },
 	{ value: 'rhode-island', label: 'Rhode Island', type: 'State', path: '', available: false },
 	{ value: 'south-carolina', label: 'South Carolina', type: 'State', path: '', available: false },

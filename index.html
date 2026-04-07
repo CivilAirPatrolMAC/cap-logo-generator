@@ -108,7 +108,7 @@
 		const renderGraphic = async () => {
 			if (!ctx || !capFont) return;
 
-			const rawInput = document.getElementById('subordinateText').value || 'TEXAS WING';
+			const rawInput = document.getElementById('subordinateText').value || 'Marketing & Communications';
 			const text = rawInput.toUpperCase();
 
 			const canvasWidth = 2000;
@@ -349,7 +349,7 @@
 	</p>
 
 	<label for="subordinateText">Subordinate line</label>
-	<input id="subordinateText" type="text" placeholder="Insert Subordinate Text" maxlength="30" value="TEXAS WING" />
+	<input id="subordinateText" type="text" placeholder="Insert Subordinate Text" maxlength="30" value="MARKETING & COMMUNICATIONS" />
 
 	<div class="canvas-container">
 		<canvas id="canvas" width="2000" height="415"></canvas>

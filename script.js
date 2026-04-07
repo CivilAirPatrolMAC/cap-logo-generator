@@ -66,7 +66,7 @@ const emblemOptions = [
 	{ value: 'south-carolina', label: 'South Carolina', type: 'State', path: '', available: false },
 	{ value: 'south-dakota', label: 'South Dakota', type: 'State', path: '', available: false },
 	{ value: 'tennessee', label: 'Tennessee', type: 'State', path: '', available: false },
-	{ value: 'texas', label: 'Texas', type: 'State', path: '', available: false },
+	{ value: 'texas', label: 'Texas', type: 'State', path: 'txemblem.png', available: true },
 	{ value: 'utah', label: 'Utah', type: 'State', path: '', available: false },
 	{ value: 'vermont', label: 'Vermont', type: 'State', path: '', available: false },
 	{ value: 'virginia', label: 'Virginia', type: 'State', path: '', available: false },

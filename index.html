@@ -11,149 +11,168 @@
 	<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500&display=block" rel="stylesheet">
 
 	<script type="text/javascript">
-	let canvas;
-	let ctx;
-	let capFont;
+		let canvas;
+		let ctx;
+		let capFont;
 
-	document.addEventListener('DOMContentLoaded', () => {
-		canvas = document.getElementById('canvas');
-		ctx = canvas.getContext('2d');
+		document.addEventListener('DOMContentLoaded', () => {
+			canvas = document.getElementById('canvas');
+			ctx = canvas.getContext('2d');
 
-		loadFont().then(() => {
-			renderGraphic();
+			loadFont().then(() => {
+				renderGraphic();
+			});
+
+			document.getElementById('subordinateText').oninput = renderGraphic;
+			document.getElementById('download').onclick = download;
 		});
 
-		document.getElementById('subordinateText').oninput = renderGraphic;
-		document.getElementById('download').onclick = download;
-	});
+		const loadFont = async () => {
+			if (capFont) return;
 
-	const loadFont = async () => {
-		if (capFont) return;
+			const fontSource = new FontFace('Rajdhani', 'url(font.woff2)');
+			capFont = await fontSource.load();
+			document.fonts.add(capFont);
+		};
 
-		const fontSource = new FontFace('Rajdhani', 'url(font.woff2)');
-		capFont = await fontSource.load();
-		document.fonts.add(capFont);
-	};
+		const drawSource = () => {
+			return new Promise((resolve) => {
+				const imageSource = new Image();
 
-	const drawSource = () => {
-		return new Promise((resolve) => {
-			const imageSource = new Image();
+				imageSource.onload = () => {
+					ctx.drawImage(imageSource, 0, 0, 2000, 415, 0, 0, 2000, 415);
+					resolve();
+				};
 
-			imageSource.onload = () => {
-				ctx.drawImage(imageSource, 0, 0, 2000, 415, 0, 0, 2000, 415);
-				resolve();
-			};
+				imageSource.src = 'source.svg';
+			});
+		};
 
-			imageSource.src = 'source.svg';
-		});
-	};
+		const measureTrackedText = (str, tracking) => {
+			if (!str.length) return 0;
 
-	const measureTrackedText = (str, tracking) => {
-		if (!str.length) return 0;
+			let width = 0;
 
-		let width = 0;
+			for (let i = 0; i < str.length; i++) {
+				width += ctx.measureText(str[i]).width;
 
-		for (let i = 0; i < str.length; i++) {
-			width += ctx.measureText(str[i]).width;
-
-			if (i < str.length - 1) {
-				width += tracking;
+				if (i < str.length - 1) {
+					width += tracking;
+				}
 			}
-		}
 
-		return width;
-	};
+			return width;
+		};
 
-	const drawTrackedText = (str, startX, baselineY, tracking) => {
-		let x = startX;
+		const drawTrackedText = (str, startX, baselineY, tracking) => {
+			let x = startX;
 
-		for (let i = 0; i < str.length; i++) {
-			const char = str[i];
-			ctx.fillText(char, x, baselineY);
-			x += ctx.measureText(char).width + tracking;
-		}
-	};
-
-	const getFittedFontSize = (text, options) => {
-		const {
-			fontFamily,
-			fontWeight,
-			tracking,
-			maxWidth,
-			maxFontSize,
-			minFontSize
-		} = options;
-
-		for (let fontSize = maxFontSize; fontSize >= minFontSize; fontSize--) {
-			ctx.font = fontWeight + ' ' + fontSize + 'px ' + fontFamily;
-			const width = measureTrackedText(text, tracking);
-
-			if (width <= maxWidth) {
-				return fontSize;
+			for (let i = 0; i < str.length; i++) {
+				const char = str[i];
+				ctx.fillText(char, x, baselineY);
+				x += ctx.measureText(char).width + tracking;
 			}
-		}
+		};
 
-		return minFontSize;
-	};
+		const getScaledFontSize = (text, options) => {
+			const {
+				fontFamily,
+				fontWeight,
+				tracking,
+				maxWidth,
+				maxFontSize,
+				minFontSize
+			} = options;
 
-	const renderGraphic = async () => {
-		if (!ctx || !capFont) return;
+			ctx.font = fontWeight + ' ' + maxFontSize + 'px ' + fontFamily;
+			const fullWidth = measureTrackedText(text, tracking);
 
-		const subordinateInput = document.getElementById('subordinateText').value || 'Marketing & Communications';
-		const subordinateText = subordinateInput;
+			if (fullWidth <= maxWidth) {
+				return maxFontSize;
+			}
 
-		const subordinateStartX = 591;
-		const subordinateBaselineY = 330;
-		const subordinateTracking = 0;
-		const capBlue = '#001871';
+			const scale = maxWidth / fullWidth;
+			const scaledSize = Math.floor(maxFontSize * scale);
 
-		// Keep the original banner size and fit text within the safe text area
-		const canvasWidth = 2000;
-		const canvasHeight = 415;
-		const safeRightPadding = 0;
-		const maxTextWidth = canvasWidth - subordinateStartX - safeRightPadding;
+			return Math.max(scaledSize, minFontSize);
+		};
 
-		// Match official look, but scale down automatically when needed
-		const maxFontSize = 79;
-		const minFontSize = 24;
-		const fontFamily = 'Rajdhani';
-		const fontWeight = 'bold';
+		const getAdjustedBaseline = (fontSize, maxFontSize, baseBaselineY, maxLift) => {
+			const shrinkAmount = maxFontSize - fontSize;
+			const baselineAdjustment = Math.round((shrinkAmount / (maxFontSize - 28)) * maxLift) || 0;
+			return baseBaselineY - baselineAdjustment;
+		};
 
-		const subordinateFontSize = getFittedFontSize(subordinateText, {
-			fontFamily,
-			fontWeight,
-			tracking: subordinateTracking,
-			maxWidth: maxTextWidth,
-			maxFontSize,
-			minFontSize
-		});
+		const renderGraphic = async () => {
+			if (!ctx || !capFont) return;
 
-		canvas.width = canvasWidth;
-		canvas.height = canvasHeight;
+			const subordinateInput = document.getElementById('subordinateText').value || 'Marketing & Communications';
+			const subordinateText = subordinateInput;
 
-		await drawSource();
+			const canvasWidth = 2000;
+			const canvasHeight = 415;
+			const subordinateStartX = 591;
+			const baseBaselineY = 330;
+			const safeRightPadding = 40;
 
-		ctx.fillStyle = capBlue;
-		ctx.font = fontWeight + ' ' + subordinateFontSize + 'px ' + fontFamily;
-		drawTrackedText(subordinateText, subordinateStartX, subordinateBaselineY, subordinateTracking);
-	};
+			const capBlue = '#001871';
+			const subordinateTracking = 0;
+			const fontFamily = 'Rajdhani';
+			const fontWeight = 'bold';
 
-	const download = () => {
-		const tmpLink = document.createElement('a');
-		let e;
+			const maxFontSize = 96;
+			const minFontSize = 28;
+			const maxTextWidth = canvasWidth - subordinateStartX - safeRightPadding;
 
-		tmpLink.download = 'Graphic.png';
-		tmpLink.href = canvas.toDataURL('image/png');
+			const subordinateFontSize = getScaledFontSize(subordinateText, {
+				fontFamily,
+				fontWeight,
+				tracking: subordinateTracking,
+				maxWidth: maxTextWidth,
+				maxFontSize,
+				minFontSize
+			});
 
-		if (document.createEvent) {
-			e = document.createEvent('MouseEvents');
-			e.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-			tmpLink.dispatchEvent(e);
-		} else if (tmpLink.fireEvent) {
-			tmpLink.fireEvent('onclick');
-		}
-	};
-</script>
+			const subordinateBaselineY = getAdjustedBaseline(
+				subordinateFontSize,
+				maxFontSize,
+				baseBaselineY,
+				12
+			);
+
+			canvas.width = canvasWidth;
+			canvas.height = canvasHeight;
+
+			await drawSource();
+
+			ctx.fillStyle = capBlue;
+			ctx.font = fontWeight + ' ' + subordinateFontSize + 'px ' + fontFamily;
+
+			drawTrackedText(
+				subordinateText,
+				subordinateStartX,
+				subordinateBaselineY,
+				subordinateTracking
+			);
+		};
+
+		const download = () => {
+			const tmpLink = document.createElement('a');
+			let e;
+
+			tmpLink.download = 'Graphic.png';
+			tmpLink.href = canvas.toDataURL('image/png');
+
+			if (document.createEvent) {
+				e = document.createEvent('MouseEvents');
+				e.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+				tmpLink.dispatchEvent(e);
+			} else if (tmpLink.fireEvent) {
+				tmpLink.fireEvent('onclick');
+			}
+		};
+	</script>
+
 	<style type="text/css">
 		html, body, div, span, applet, object, iframe,
 		h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -328,7 +347,7 @@
 	</p>
 
 	<label for="subordinateText">Subordinate line</label>
-	<input id="subordinateText" type="text" placeholder="Insert Subordinate Text" maxlength="40" value="Marketing &amp; Communications" />
+	<input id="subordinateText" type="text" placeholder="Insert Subordinate Text" maxlength="60" value="Marketing &amp; Communications" />
 
 	<div class="canvas-container">
 		<canvas id="canvas" width="2000" height="415"></canvas>

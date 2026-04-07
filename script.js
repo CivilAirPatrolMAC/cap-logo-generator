@@ -3,12 +3,78 @@ let ctx;
 let capFont;
 
 let secondaryGraphicImage = null;
-let secondaryGraphicShouldInvertOnWhite = false;
+let secondaryGraphicSource = null; // 'upload' or 'dropdown' or null
 
 const BASE_WIDTH = 2000;
 const BASE_HEIGHT = 415;
 const SECONDARY_PADDING_LEFT = 35;
 const SECONDARY_PADDING_RIGHT = 35;
+
+const emblemOptions = [
+	// Regions
+	{ value: 'rocky-mountain-region', label: 'Rocky Mountain Region', type: 'Region', path: '', available: false },
+	{ value: 'pacific-region', label: 'Pacific Region', type: 'Region', path: '', available: false },
+	{ value: 'north-central-region', label: 'North Central Region', type: 'Region', path: '', available: false },
+	{ value: 'great-lakes-region', label: 'Great Lakes Region', type: 'Region', path: '', available: false },
+	{ value: 'northeast-region', label: 'Northeast Region', type: 'Region', path: '', available: false },
+	{ value: 'mid-atlantic-region', label: 'Mid-Atlantic Region', type: 'Region', path: '', available: false },
+	{ value: 'southeast-region', label: 'Southeast Region', type: 'Region', path: '', available: false },
+	{ value: 'southwest-region', label: 'Southwest Region', type: 'Region', path: 'swremblem.png', available: true },
+	{ value: 'overseas', label: 'Overseas', type: 'Region', path: '', available: false },
+
+	// States
+	{ value: 'alabama', label: 'Alabama', type: 'State', path: '', available: false },
+	{ value: 'alaska', label: 'Alaska', type: 'State', path: '', available: false },
+	{ value: 'arizona', label: 'Arizona', type: 'State', path: '', available: false },
+	{ value: 'arkansas', label: 'Arkansas', type: 'State', path: '', available: false },
+	{ value: 'california', label: 'California', type: 'State', path: '', available: false },
+	{ value: 'colorado', label: 'Colorado', type: 'State', path: '', available: false },
+	{ value: 'connecticut', label: 'Connecticut', type: 'State', path: '', available: false },
+	{ value: 'delaware', label: 'Delaware', type: 'State', path: '', available: false },
+	{ value: 'florida', label: 'Florida', type: 'State', path: '', available: false },
+	{ value: 'georgia', label: 'Georgia', type: 'State', path: '', available: false },
+	{ value: 'hawaii', label: 'Hawaii', type: 'State', path: '', available: false },
+	{ value: 'idaho', label: 'Idaho', type: 'State', path: '', available: false },
+	{ value: 'illinois', label: 'Illinois', type: 'State', path: '', available: false },
+	{ value: 'indiana', label: 'Indiana', type: 'State', path: '', available: false },
+	{ value: 'iowa', label: 'Iowa', type: 'State', path: '', available: false },
+	{ value: 'kansas', label: 'Kansas', type: 'State', path: '', available: false },
+	{ value: 'kentucky', label: 'Kentucky', type: 'State', path: '', available: false },
+	{ value: 'louisiana', label: 'Louisiana', type: 'State', path: '', available: false },
+	{ value: 'maine', label: 'Maine', type: 'State', path: '', available: false },
+	{ value: 'maryland', label: 'Maryland', type: 'State', path: '', available: false },
+	{ value: 'massachusetts', label: 'Massachusetts', type: 'State', path: '', available: false },
+	{ value: 'michigan', label: 'Michigan', type: 'State', path: '', available: false },
+	{ value: 'minnesota', label: 'Minnesota', type: 'State', path: '', available: false },
+	{ value: 'mississippi', label: 'Mississippi', type: 'State', path: '', available: false },
+	{ value: 'missouri', label: 'Missouri', type: 'State', path: '', available: false },
+	{ value: 'montana', label: 'Montana', type: 'State', path: '', available: false },
+	{ value: 'nationalcapitol', label: 'National Capitol', type: 'State', path: '', available: false },
+	{ value: 'nebraska', label: 'Nebraska', type: 'State', path: '', available: false },
+	{ value: 'nevada', label: 'Nevada', type: 'State', path: '', available: false },
+	{ value: 'new-hampshire', label: 'New Hampshire', type: 'State', path: '', available: false },
+	{ value: 'new-jersey', label: 'New Jersey', type: 'State', path: '', available: false },
+	{ value: 'new-mexico', label: 'New Mexico', type: 'State', path: '', available: false },
+	{ value: 'new-york', label: 'New York', type: 'State', path: '', available: false },
+	{ value: 'north-carolina', label: 'North Carolina', type: 'State', path: '', available: false },
+	{ value: 'north-dakota', label: 'North Dakota', type: 'State', path: '', available: false },
+	{ value: 'ohio', label: 'Ohio', type: 'State', path: '', available: false },
+	{ value: 'oklahoma', label: 'Oklahoma', type: 'State', path: '', available: false },
+	{ value: 'oregon', label: 'Oregon', type: 'State', path: '', available: false },
+	{ value: 'pennsylvania', label: 'Pennsylvania', type: 'State', path: '', available: false },
+	{ value: 'rhode-island', label: 'Rhode Island', type: 'State', path: '', available: false },
+	{ value: 'south-carolina', label: 'South Carolina', type: 'State', path: '', available: false },
+	{ value: 'south-dakota', label: 'South Dakota', type: 'State', path: '', available: false },
+	{ value: 'tennessee', label: 'Tennessee', type: 'State', path: '', available: false },
+	{ value: 'texas', label: 'Texas', type: 'State', path: '', available: false },
+	{ value: 'utah', label: 'Utah', type: 'State', path: '', available: false },
+	{ value: 'vermont', label: 'Vermont', type: 'State', path: '', available: false },
+	{ value: 'virginia', label: 'Virginia', type: 'State', path: '', available: false },
+	{ value: 'washington', label: 'Washington', type: 'State', path: '', available: false },
+	{ value: 'west-virginia', label: 'West Virginia', type: 'State', path: '', available: false },
+	{ value: 'wisconsin', label: 'Wisconsin', type: 'State', path: '', available: false },
+	{ value: 'wyoming', label: 'Wyoming', type: 'State', path: '', available: false }
+];
 
 document.addEventListener('DOMContentLoaded', () => {
 	canvas = document.getElementById('canvas');
@@ -18,27 +84,56 @@ document.addEventListener('DOMContentLoaded', () => {
 	const logoStyleSelect = document.getElementById('logoStyle');
 	const secondaryInput = document.getElementById('secondaryGraphic');
 	const clearButton = document.getElementById('clearSecondaryGraphic');
+	const emblemSelect = document.getElementById('emblemSelect');
+
+	populateEmblemSelect();
 
 	loadFont().then(() => {
-		updateSecondaryGraphicAvailability();
 		renderGraphic();
 	});
 
 	subordinateTextInput.oninput = renderGraphic;
-
-	logoStyleSelect.onchange = () => {
-		updateSecondaryGraphicAvailability();
-		renderGraphic();
-	};
-
+	logoStyleSelect.onchange = renderGraphic;
 	secondaryInput.onchange = handleSecondaryGraphicUpload;
 	clearButton.onclick = clearSecondaryGraphic;
+	emblemSelect.onchange = handleEmblemSelection;
 	document.getElementById('download').onclick = download;
 });
 
-const updateSecondaryGraphicAvailability = () => {
-	document.getElementById('secondaryGraphic').disabled = false;
-	document.getElementById('clearSecondaryGraphic').disabled = false;
+const populateEmblemSelect = () => {
+	const emblemSelect = document.getElementById('emblemSelect');
+	emblemSelect.innerHTML = '';
+
+	const noneOption = document.createElement('option');
+	noneOption.value = '';
+	noneOption.textContent = 'None';
+	emblemSelect.appendChild(noneOption);
+
+	const regionGroup = document.createElement('optgroup');
+	regionGroup.label = 'Regions';
+
+	const stateGroup = document.createElement('optgroup');
+	stateGroup.label = 'States';
+
+	emblemOptions.forEach((item) => {
+		const option = document.createElement('option');
+		option.value = item.value;
+		option.textContent = item.label;
+		option.disabled = !item.available;
+
+		if (!item.available) {
+			option.textContent += ' (unavailable)';
+		}
+
+		if (item.type === 'Region') {
+			regionGroup.appendChild(option);
+		} else {
+			stateGroup.appendChild(option);
+		}
+	});
+
+	emblemSelect.appendChild(regionGroup);
+	emblemSelect.appendChild(stateGroup);
 };
 
 const loadFont = async () => {
@@ -63,71 +158,22 @@ const drawSource = (imagePath) => {
 	});
 };
 
+const loadImage = (imagePath) => {
+	return new Promise((resolve, reject) => {
+		const img = new Image();
+
+		img.onload = () => resolve(img);
+		img.onerror = reject;
+		img.src = imagePath;
+	});
+};
+
 const clearSecondaryGraphic = () => {
 	secondaryGraphicImage = null;
-	secondaryGraphicShouldInvertOnWhite = false;
+	secondaryGraphicSource = null;
 	document.getElementById('secondaryGraphic').value = '';
+	document.getElementById('emblemSelect').value = '';
 	renderGraphic();
-};
-
-const analyzeDarkLogo = (img) => {
-	const tempCanvas = document.createElement('canvas');
-	const tempCtx = tempCanvas.getContext('2d');
-
-	tempCanvas.width = img.width;
-	tempCanvas.height = img.height;
-	tempCtx.drawImage(img, 0, 0);
-
-	const data = tempCtx.getImageData(0, 0, img.width, img.height).data;
-
-	let total = 0;
-	let dark = 0;
-
-	for (let i = 0; i < data.length; i += 4) {
-		const r = data[i];
-		const g = data[i + 1];
-		const b = data[i + 2];
-		const a = data[i + 3];
-
-		if (a < 20) continue;
-
-		total++;
-		const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-
-		if (luminance < 110) {
-			dark++;
-		}
-	}
-
-	return total && (dark / total > 0.4);
-};
-
-const invertImage = (img) => {
-	return new Promise((resolve) => {
-		const tempCanvas = document.createElement('canvas');
-		const tempCtx = tempCanvas.getContext('2d');
-
-		tempCanvas.width = img.width;
-		tempCanvas.height = img.height;
-		tempCtx.drawImage(img, 0, 0);
-
-		const imageData = tempCtx.getImageData(0, 0, img.width, img.height);
-		const data = imageData.data;
-
-		for (let i = 0; i < data.length; i += 4) {
-			if (data[i + 3] === 0) continue;
-
-			data[i] = 255 - data[i];
-			data[i + 1] = 255 - data[i + 1];
-			data[i + 2] = 255 - data[i + 2];
-		}
-
-		tempCtx.putImageData(imageData, 0, 0);
-
-		const newImg = new Image();
-		newImg.onload = () => resolve(newImg);
-		newImg.src = tempCanvas.toDataURL('image/png');
-	});
 };
 
 const handleSecondaryGraphicUpload = (event) => {
@@ -141,7 +187,11 @@ const handleSecondaryGraphicUpload = (event) => {
 
 		img.onload = () => {
 			secondaryGraphicImage = img;
-			secondaryGraphicShouldInvertOnWhite = analyzeDarkLogo(img);
+			secondaryGraphicSource = 'upload';
+
+			// Clear dropdown selection when using a custom upload
+			document.getElementById('emblemSelect').value = '';
+
 			renderGraphic();
 		};
 
@@ -149,6 +199,37 @@ const handleSecondaryGraphicUpload = (event) => {
 	};
 
 	reader.readAsDataURL(file);
+};
+
+const handleEmblemSelection = async (event) => {
+	const selectedValue = event.target.value;
+
+	if (!selectedValue) {
+		secondaryGraphicImage = null;
+		secondaryGraphicSource = null;
+		renderGraphic();
+		return;
+	}
+
+	const selectedItem = emblemOptions.find((item) => item.value === selectedValue);
+
+	if (!selectedItem || !selectedItem.available || !selectedItem.path) {
+		return;
+	}
+
+	try {
+		const img = await loadImage(selectedItem.path);
+
+		secondaryGraphicImage = img;
+		secondaryGraphicSource = 'dropdown';
+
+		// Clear uploaded file when using dropdown selection
+		document.getElementById('secondaryGraphic').value = '';
+
+		renderGraphic();
+	} catch (error) {
+		console.error('Could not load emblem:', error);
+	}
 };
 
 const measureTrackedText = (str, tracking) => {
@@ -210,10 +291,6 @@ const getResponsiveFontSize = (text, options) => {
 	);
 };
 
-const getSecondaryImageForMode = async () => {
-	return secondaryGraphicImage;
-};
-
 const getSecondaryLayout = (img) => {
 	if (!img) {
 		return {
@@ -229,7 +306,6 @@ const getSecondaryLayout = (img) => {
 	const imgHeight = img.height;
 
 	const scale = BASE_HEIGHT / imgHeight;
-
 	const drawWidth = imgWidth * scale;
 	const drawHeight = BASE_HEIGHT;
 
@@ -259,8 +335,7 @@ const renderGraphic = async () => {
 	const isWhiteVersion = selectedStyle === 'white';
 	const logoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
 
-	const secondaryImageForMode = await getSecondaryImageForMode(isWhiteVersion);
-	const secondaryLayout = getSecondaryLayout(secondaryImageForMode);
+	const secondaryLayout = getSecondaryLayout(secondaryGraphicImage);
 
 	const canvasWidth = BASE_WIDTH + secondaryLayout.extraWidth;
 	const canvasHeight = BASE_HEIGHT;
@@ -310,9 +385,9 @@ const renderGraphic = async () => {
 
 	drawTrackedText(text, startX, baselineY, tracking);
 
-	if (secondaryImageForMode) {
+	if (secondaryGraphicImage) {
 		ctx.drawImage(
-			secondaryImageForMode,
+			secondaryGraphicImage,
 			secondaryLayout.drawX,
 			secondaryLayout.drawY,
 			secondaryLayout.drawWidth,

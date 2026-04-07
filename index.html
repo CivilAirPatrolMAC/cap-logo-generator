@@ -23,7 +23,8 @@
 				renderGraphic();
 			});
 
-			document.getElementById('text').oninput = renderGraphic;
+			document.getElementById('primaryText').oninput = renderGraphic;
+			document.getElementById('subordinateText').oninput = renderGraphic;
 			document.getElementById('download').onclick = download;
 		});
 
@@ -49,11 +50,16 @@
 		};
 
 		const measureTrackedText = (str, tracking) => {
+			if (!str.length) return 0;
+
 			let width = 0;
 
 			for (let i = 0; i < str.length; i++) {
 				width += ctx.measureText(str[i]).width;
-				if (i < str.length - 1) width += tracking;
+
+				if (i < str.length - 1) {
+					width += tracking;
+				}
 			}
 
 			return width;
@@ -72,39 +78,78 @@
 		const renderGraphic = async () => {
 			if (!ctx || !capFont) return;
 
-			const input = document.getElementById('text').value || 'Insert Text Here';
-			const text = input.toUpperCase();
+			const primaryInput = document.getElementById('primaryText').value || 'Insert Primary Text';
+			const subordinateInput = document.getElementById('subordinateText').value || 'Marketing & Communications';
 
-			const startX = 591;
-			const baselineY = 360; // safe below emblem
-			const tracking = 25;
-			const fontSize = 120;
+			const primaryText = primaryInput.toUpperCase();
+			const subordinateText = subordinateInput;
+
+			const primaryStartX = 591;
 			const capBlue = '#001871';
+			const primaryGray = '#9EA2A2';
 
-			ctx.font = 'bold ' + fontSize + 'px Rajdhani';
-			const textWidth = measureTrackedText(text, tracking);
+			// Primary line styling
+			const primaryFontSize = 136;
+			const primaryTracking = 25;
+			const primaryBaselineY = 285;
 
-			const neededWidth = startX + textWidth + 50;
+			// Subordinate line styling matched to official CAP SVG output
+			// Official SVG uses: 15px Rajdhani Bold, letter-spacing: 0em
+			// Scaled to this 2000px banner: approximately 79px
+			const subordinateFontSize = 79;
+			const subordinateTracking = 0;
+			const subordinateBaselineY = 383;
 
-			canvas.width = Math.max(2000, neededWidth);
+			// Measure primary text
+			ctx.font = 'bold ' + primaryFontSize + 'px Rajdhani';
+			const primaryWidth = measureTrackedText(primaryText, primaryTracking);
+
+			// Measure subordinate text
+			ctx.font = 'bold ' + subordinateFontSize + 'px Rajdhani';
+			const subordinateWidth = measureTrackedText(subordinateText, subordinateTracking);
+
+			// Align subordinate right edge to primary right edge,
+			// but do not let it extend left of the safe text area.
+			const subordinateStartX = Math.max(
+				primaryStartX,
+				primaryStartX + primaryWidth - subordinateWidth
+			);
+
+			const farthestRight = Math.max(
+				primaryStartX + primaryWidth,
+				subordinateStartX + subordinateWidth
+			);
+
+			canvas.width = Math.max(2000, farthestRight + 50);
 			canvas.height = 415;
 
 			await drawSource();
 
-			ctx.fillStyle = capBlue;
-			ctx.font = 'bold ' + fontSize + 'px Rajdhani';
+			// Draw primary line
+			ctx.fillStyle = primaryGray;
+			ctx.font = 'bold ' + primaryFontSize + 'px Rajdhani';
+			drawTrackedText(primaryText, primaryStartX, primaryBaselineY, primaryTracking);
 
-			drawTrackedText(text, startX, baselineY, tracking);
+			// Draw subordinate line
+			ctx.fillStyle = capBlue;
+			ctx.font = 'bold ' + subordinateFontSize + 'px Rajdhani';
+			drawTrackedText(subordinateText, subordinateStartX, subordinateBaselineY, subordinateTracking);
 		};
 
 		const download = () => {
 			const tmpLink = document.createElement('a');
+			let e;
+
 			tmpLink.download = 'Graphic.png';
 			tmpLink.href = canvas.toDataURL('image/png');
 
-			const e = document.createEvent('MouseEvents');
-			e.initMouseEvent('click', true, true, window);
-			tmpLink.dispatchEvent(e);
+			if (document.createEvent) {
+				e = document.createEvent('MouseEvents');
+				e.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+				tmpLink.dispatchEvent(e);
+			} else if (tmpLink.fireEvent) {
+				tmpLink.fireEvent('onclick');
+			}
 		};
 	</script>
 
@@ -118,8 +163,8 @@
 		dl, dt, dd, ol, ul, li,
 		fieldset, form, label, legend,
 		table, caption, tbody, tfoot, thead, tr, th, td,
-		article, aside, canvas, details, embed, 
-		figure, figcaption, footer, header, hgroup, 
+		article, aside, canvas, details, embed,
+		figure, figcaption, footer, header, hgroup,
 		menu, nav, output, ruby, section, summary,
 		time, mark, audio, video {
 			margin: 0;
@@ -130,57 +175,128 @@
 			vertical-align: baseline;
 		}
 
-		article, aside, details, figcaption, figure, 
+		article, aside, details, figcaption, figure,
 		footer, header, hgroup, menu, nav, section {
 			display: block;
 		}
 
 		body {
 			line-height: 1;
+		}
+
+		ol, ul {
+			list-style: none;
+		}
+
+		blockquote, q {
+			quotes: none;
+		}
+
+		blockquote:before, blockquote:after,
+		q:before, q:after {
+			content: '';
+			content: none;
+		}
+
+		table {
+			border-collapse: collapse;
+			border-spacing: 0;
+		}
+
+		body {
 			padding: 50px;
-			font-family: "Ubuntu", sans-serif;
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+			color: rgb(0, 0, 0);
+			line-height: 1.4;
+			font-weight: 400;
+			font-size: 1em;
+		}
+
+		a {
+			color: rgb(0, 20, 137);
 		}
 
 		h1 {
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 			color: #001871;
 			font-size: 30px;
-			margin-bottom: 10px;
+			line-height: 1.3;
+			font-weight: 500;
+			margin: 0 0 10px;
 		}
 
 		p {
 			margin: 10px 0;
 		}
 
+		label {
+			display: block;
+			margin-top: 24px;
+			margin-bottom: 8px;
+			font-weight: 500;
+			color: #001871;
+		}
+
 		input {
+			display: block;
+			width: 100%;
+			max-width: 500px;
 			border: 1px solid rgb(158, 162, 162);
 			border-radius: 5px;
 			font-size: 16px;
+			line-height: 1.3;
+			font-weight: 400;
 			padding: 10px 20px;
-			margin-top: 50px;
-			width: 400px;
+			background-color: rgb(255, 255, 255);
+			color: rgb(0, 0, 0);
 		}
 
 		.canvas-container {
 			width: 600px;
 			height: 161px;
-			margin: 20px 0;
+			margin: 30px 0 20px;
 		}
 
 		#canvas {
-			transform: scale(0.3);
 			transform-origin: 0 0;
+			transform: scale(0.3);
 			border: 3px solid rgb(158, 162, 162);
 			padding: 60px;
 			border-radius: 15px;
 		}
 
 		button {
-			background-color: #001871;
-			color: white;
-			padding: 10px 20px;
+			transition: all 0.2s ease-in-out;
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+			color: rgb(255, 255, 255);
+			font-size: 16px;
+			line-height: 1.3;
+			font-weight: 400;
+			border-width: 2px;
 			border-radius: 5px;
+			border-color: rgb(0, 17, 123);
+			background-color: rgb(0, 20, 137);
+			padding: 10px 20px;
 			cursor: pointer;
-			border: none;
+			user-select: none;
+		}
+
+		button:hover {
+			color: rgb(255, 255, 255);
+			border-color: rgb(0, 12, 92);
+			background-color: rgb(0, 14, 102);
+		}
+
+		footer {
+			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+			color: rgb(158, 162, 162);
+			font-size: 12px;
+			padding: 20px 0;
+			margin-top: 50px;
+		}
+
+		footer a {
+			color: inherit;
 		}
 	</style>
 </head>
@@ -210,7 +326,11 @@
 		Please refer to the CAP Brand Portal for additional information and guidance.
 	</p>
 
-	<input id="text" type="text" placeholder="Insert Text Here" maxlength="26" />
+	<label for="primaryText">Primary line</label>
+	<input id="primaryText" type="text" placeholder="Insert Primary Text" maxlength="40" value="Insert Primary Text" />
+
+	<label for="subordinateText">Subordinate line</label>
+	<input id="subordinateText" type="text" placeholder="Insert Subordinate Text" maxlength="40" value="Marketing &amp; Communications" />
 
 	<div class="canvas-container">
 		<canvas id="canvas" width="2000" height="415"></canvas>

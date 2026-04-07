@@ -71,31 +71,42 @@ const getResponsiveFontSize = (text, options) => {
 		availableWidth,
 		targetFillRatio,
 		maxFontSize,
-		minFontSize
+		minFontSize,
+		maxTextHeight
 	} = options;
 
 	const referenceFontSize = 100;
 	ctx.font = fontWeight + ' ' + referenceFontSize + 'px ' + fontFamily;
-	const referenceWidth = measureTrackedText(text, tracking);
 
+	const referenceWidth = measureTrackedText(text, tracking);
 	if (!referenceWidth) return maxFontSize;
 
+	// Width-based scaling
 	const targetWidth = availableWidth * targetFillRatio;
-	const scaledSize = Math.floor((targetWidth / referenceWidth) * referenceFontSize);
+	const widthScaledSize = Math.floor((targetWidth / referenceWidth) * referenceFontSize);
 
-	return Math.max(minFontSize, Math.min(maxFontSize, scaledSize));
+	// Height-based scaling using actual font metrics
+	const metrics = ctx.measureText('Hg');
+	const referenceHeight = (metrics.actualBoundingBoxAscent || referenceFontSize * 0.8) +
+		(metrics.actualBoundingBoxDescent || referenceFontSize * 0.2);
+	const heightScale = maxTextHeight / referenceHeight;
+	const heightScaledSize = Math.floor(referenceFontSize * heightScale);
+
+	const fittedSize = Math.min(widthScaledSize, heightScaledSize, maxFontSize);
+
+	return Math.max(minFontSize, fittedSize);
 };
 
 const renderGraphic = async () => {
 	if (!ctx || !capFont) return;
 
-	const text = document.getElementById('subordinateText').value || 'Texas Wing';
+	const text = document.getElementById('subordinateText').value || 'Marketing & Communications';
 
 	const canvasWidth = 2000;
 	const canvasHeight = 415;
 
 	const startX = 591;
-	const baseBaselineY = 330;
+	const baselineY = 330;
 	const safeRightPadding = 40;
 
 	const capBlue = '#001871';
@@ -103,7 +114,12 @@ const renderGraphic = async () => {
 	const fontFamily = 'Rajdhani';
 	const fontWeight = 'bold';
 
+	// Width available under the image/text band
 	const availableWidth = canvasWidth - startX - safeRightPadding;
+
+	// Vertical safe zone: how tall the text can be before it hits the image
+	// Lower this number if you want more clearance.
+	const maxTextHeight = 72;
 
 	const targetFillRatio = 0.88;
 	const maxFontSize = 150;
@@ -116,15 +132,9 @@ const renderGraphic = async () => {
 		availableWidth,
 		targetFillRatio,
 		maxFontSize,
-		minFontSize
+		minFontSize,
+		maxTextHeight
 	});
-
-	const maxLift = 12;
-	const shrinkRange = maxFontSize - minFontSize;
-	const shrinkAmount = maxFontSize - fontSize;
-	const lift = shrinkRange > 0 ? Math.round((shrinkAmount / shrinkRange) * maxLift) : 0;
-
-	const baselineY = baseBaselineY - lift;
 
 	canvas.width = canvasWidth;
 	canvas.height = canvasHeight;

@@ -14,6 +14,7 @@
 		let canvas;
 		let ctx;
 		let capFont;
+		let currentTextColor = '#001871';
 
 		document.addEventListener('DOMContentLoaded', () => {
 			canvas = document.getElementById('canvas');
@@ -24,6 +25,7 @@
 			});
 
 			document.getElementById('subordinateText').oninput = renderGraphic;
+			document.getElementById('colorVariant').onchange = renderGraphic;
 			document.getElementById('download').onclick = download;
 		});
 
@@ -35,35 +37,76 @@
 			document.fonts.add(capFont);
 		};
 
+		const getSelectedLogoFile = () => {
+			const color = document.getElementById('colorVariant').value;
+			return color === 'white' ? 'WhiteLogo.png' : 'BlueLogo.png';
+		};
+
+		const getDominantColorFromImage = (image) => {
+			const sampleCanvas = document.createElement('canvas');
+			const sampleCtx = sampleCanvas.getContext('2d', { willReadFrequently: true });
+
+			const sampleWidth = 200;
+			const sampleHeight = Math.max(1, Math.round((image.height / image.width) * sampleWidth));
+
+			sampleCanvas.width = sampleWidth;
+			sampleCanvas.height = sampleHeight;
+			sampleCtx.drawImage(image, 0, 0, sampleWidth, sampleHeight);
+
+			const imageData = sampleCtx.getImageData(0, 0, sampleWidth, sampleHeight).data;
+
+			let rTotal = 0, gTotal = 0, bTotal = 0, count = 0;
+
+			for (let i = 0; i < imageData.length; i += 4) {
+				const r = imageData[i];
+				const g = imageData[i + 1];
+				const b = imageData[i + 2];
+				const a = imageData[i + 3];
+
+				if (a < 50) continue;
+
+				rTotal += r;
+				gTotal += g;
+				bTotal += b;
+				count++;
+			}
+
+			if (count === 0) return '#001871';
+
+			const r = Math.round(rTotal / count);
+			const g = Math.round(gTotal / count);
+			const b = Math.round(bTotal / count);
+
+			return `rgb(${r}, ${g}, ${b})`;
+		};
+
 		const drawSource = () => {
-			return new Promise((resolve) => {
+			return new Promise((resolve, reject) => {
 				const imageSource = new Image();
 
 				imageSource.onload = () => {
+					currentTextColor = getDominantColorFromImage(imageSource);
 					ctx.drawImage(imageSource, 0, 0, 2000, 415, 0, 0, 2000, 415);
 					resolve();
 				};
 
-				imageSource.src = 'BlueLogo.png';
+				imageSource.onerror = () => reject('Image failed to load');
+
+				imageSource.src = getSelectedLogoFile();
 			});
 		};
 
 		const measureTrackedText = (str, tracking) => {
 			let width = 0;
-
 			for (let i = 0; i < str.length; i++) {
 				width += ctx.measureText(str[i]).width;
-				if (i < str.length - 1) {
-					width += tracking;
-				}
+				if (i < str.length - 1) width += tracking;
 			}
-
 			return width;
 		};
 
 		const drawTrackedText = (str, startX, baselineY, tracking) => {
 			let x = startX;
-
 			for (let i = 0; i < str.length; i++) {
 				const char = str[i];
 				ctx.strokeText(char, x, baselineY);
@@ -74,14 +117,9 @@
 
 		const getResponsiveFontSize = (text, options) => {
 			const {
-				fontFamily,
-				fontWeight,
-				tracking,
-				availableWidth,
-				targetFillRatio,
-				maxFontSize,
-				minFontSize,
-				maxTextHeight
+				fontFamily, fontWeight, tracking,
+				availableWidth, targetFillRatio,
+				maxFontSize, minFontSize, maxTextHeight
 			} = options;
 
 			const referenceFontSize = 100;
@@ -101,10 +139,7 @@
 			const heightScale = maxTextHeight / referenceHeight;
 			const heightScaledSize = Math.floor(referenceFontSize * heightScale);
 
-			return Math.max(
-				minFontSize,
-				Math.min(maxFontSize, widthScaledSize, heightScaledSize)
-			);
+			return Math.max(minFontSize, Math.min(maxFontSize, widthScaledSize, heightScaledSize));
 		};
 
 		const renderGraphic = async () => {
@@ -120,28 +155,21 @@
 			const baselineY = 355;
 			const safeRightPadding = 10;
 
-			const capBlue = '#001871';
-
 			const fontFamily = 'Rajdhani';
 			const fontWeight = '700';
-
 			const tracking = 3;
 
 			const availableWidth = canvasWidth - startX - safeRightPadding;
-			const targetFillRatio = 0.98;
-			const maxFontSize = 130;
-			const minFontSize = 50;
-			const maxTextHeight = 70;
 
 			const fontSize = getResponsiveFontSize(text, {
 				fontFamily,
 				fontWeight,
 				tracking,
 				availableWidth,
-				targetFillRatio,
-				maxFontSize,
-				minFontSize,
-				maxTextHeight
+				targetFillRatio: 0.98,
+				maxFontSize: 130,
+				minFontSize: 50,
+				maxTextHeight: 70
 			});
 
 			canvas.width = canvasWidth;
@@ -149,218 +177,42 @@
 
 			await drawSource();
 
-			ctx.fillStyle = capBlue;
-			ctx.strokeStyle = capBlue;
+			ctx.fillStyle = currentTextColor;
+			ctx.strokeStyle = currentTextColor;
 			ctx.lineWidth = 1.2;
 			ctx.lineJoin = 'round';
-			ctx.miterLimit = 2;
-			ctx.font = '700 ' + fontSize + 'px Rajdhani';
+			ctx.font = `700 ${fontSize}px Rajdhani`;
 
 			drawTrackedText(text, startX, baselineY, tracking);
 		};
 
 		const download = () => {
 			const tmpLink = document.createElement('a');
-			let e;
-
 			tmpLink.download = 'Graphic.png';
 			tmpLink.href = canvas.toDataURL('image/png');
-
-			if (document.createEvent) {
-				e = document.createEvent('MouseEvents');
-				e.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-				tmpLink.dispatchEvent(e);
-			} else if (tmpLink.fireEvent) {
-				tmpLink.fireEvent('onclick');
-			}
+			tmpLink.click();
 		};
 	</script>
-
-	<style type="text/css">
-		html, body, div, span, applet, object, iframe,
-		h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-		a, abbr, acronym, address, big, cite, code,
-		del, dfn, em, img, ins, kbd, q, s, samp,
-		small, strike, strong, sub, sup, tt, var,
-		b, u, i, center,
-		dl, dt, dd, ol, ul, li,
-		fieldset, form, label, legend,
-		table, caption, tbody, tfoot, thead, tr, th, td,
-		article, aside, canvas, details, embed,
-		figure, figcaption, footer, header, hgroup,
-		menu, nav, output, ruby, section, summary,
-		time, mark, audio, video {
-			margin: 0;
-			padding: 0;
-			border: 0;
-			font-size: 100%;
-			font: inherit;
-			vertical-align: baseline;
-		}
-
-		article, aside, details, figcaption, figure,
-		footer, header, hgroup, menu, nav, section {
-			display: block;
-		}
-
-		body {
-			line-height: 1;
-		}
-
-		ol, ul {
-			list-style: none;
-		}
-
-		blockquote, q {
-			quotes: none;
-		}
-
-		blockquote:before, blockquote:after,
-		q:before, q:after {
-			content: '';
-			content: none;
-		}
-
-		table {
-			border-collapse: collapse;
-			border-spacing: 0;
-		}
-
-		body {
-			padding: 50px;
-			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-			color: rgb(0, 0, 0);
-			line-height: 1.4;
-			font-weight: 400;
-			font-size: 1em;
-		}
-
-		a {
-			color: rgb(0, 20, 137);
-		}
-
-		h1 {
-			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-			color: #001871;
-			font-size: 30px;
-			line-height: 1.3;
-			font-weight: 500;
-			margin: 0 0 10px;
-		}
-
-		p {
-			margin: 10px 0;
-		}
-
-		label {
-			display: block;
-			margin-top: 24px;
-			margin-bottom: 8px;
-			font-weight: 500;
-			color: #001871;
-		}
-
-		input {
-			display: block;
-			width: 100%;
-			max-width: 500px;
-			border: 1px solid rgb(158, 162, 162);
-			border-radius: 5px;
-			font-size: 16px;
-			line-height: 1.3;
-			font-weight: 400;
-			padding: 10px 20px;
-			background-color: rgb(255, 255, 255);
-			color: rgb(0, 0, 0);
-		}
-
-		.canvas-container {
-			width: 600px;
-			height: 161px;
-			margin: 30px 0 20px;
-		}
-
-		#canvas {
-			transform-origin: 0 0;
-			transform: scale(0.3);
-			border: 3px solid rgb(158, 162, 162);
-			padding: 60px;
-			border-radius: 15px;
-		}
-
-		button {
-			transition: all 0.2s ease-in-out;
-			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-			color: rgb(255, 255, 255);
-			font-size: 16px;
-			line-height: 1.3;
-			font-weight: 400;
-			border-width: 2px;
-			border-radius: 5px;
-			border-color: rgb(0, 17, 123);
-			background-color: rgb(0, 20, 137);
-			padding: 10px 20px;
-			cursor: pointer;
-			user-select: none;
-		}
-
-		button:hover {
-			color: rgb(255, 255, 255);
-			border-color: rgb(0, 12, 92);
-			background-color: rgb(0, 14, 102);
-		}
-
-		footer {
-			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-			color: rgb(158, 162, 162);
-			font-size: 12px;
-			padding: 20px 0;
-			margin-top: 50px;
-		}
-
-		footer a {
-			color: inherit;
-		}
-	</style>
 </head>
+
 <body>
 
-	<h1>
-		Civil Air Patrol Subordinate Graphic Generator
-	</h1>
-
-	<p>
-		Using the tool below, you can generate a Civil Air Patrol subordinate unit, activity or program graphic.
-	</p>
-
-	<p>
-		Squadron names may only be shortened by using abbreviations for the type of unit, such as "Cdt. Sq.", "Comp. Sq.", or "Sr. Sq." as appropriate. The shorter abbreviation "Sq." may be used for all squadron types.
-	</p>
-
-	<p>
-		Do not use or include a unit charter number (e.g. "SWR-TX-388").
-	</p>
-
-	<p>
-		The secondary line can be only one line and not stacked multiple times. Max length shall also be 8 characters beyond the last letter of the first line.
-	</p>
-
-	<p>
-		Please refer to the CAP Brand Portal for additional information and guidance.
-	</p>
+	<h1>Civil Air Patrol Subordinate Graphic Generator</h1>
 
 	<label for="subordinateText">Subordinate line</label>
-	<input id="subordinateText" type="text" maxlength="30" placeholder="Insert Subordinate Text" value="Marketing & Communication">
+	<input id="subordinateText" type="text" maxlength="30" value="Marketing & Communication">
+
+	<label for="colorVariant">Logo Color</label>
+	<select id="colorVariant">
+		<option value="blue">Blue</option>
+		<option value="white">White</option>
+	</select>
 
 	<div class="canvas-container">
 		<canvas id="canvas" width="2000" height="415"></canvas>
 	</div>
 
 	<button id="download">Download</button>
-
-	<footer>
-		Version 8. Last modified on April 7th, 2026. Managed by <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
-	</footer>
 
 </body>
 </html>

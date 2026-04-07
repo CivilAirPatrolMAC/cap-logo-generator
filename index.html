@@ -23,7 +23,6 @@
 				renderGraphic();
 			});
 
-			document.getElementById('primaryText').oninput = renderGraphic;
 			document.getElementById('subordinateText').oninput = renderGraphic;
 			document.getElementById('download').onclick = download;
 		});
@@ -56,7 +55,6 @@
 
 			for (let i = 0; i < str.length; i++) {
 				width += ctx.measureText(str[i]).width;
-
 				if (i < str.length - 1) {
 					width += tracking;
 				}
@@ -78,59 +76,27 @@
 		const renderGraphic = async () => {
 			if (!ctx || !capFont) return;
 
-			const primaryInput = document.getElementById('primaryText').value || 'Insert Primary Text';
 			const subordinateInput = document.getElementById('subordinateText').value || 'Marketing & Communications';
-
-			const primaryText = primaryInput.toUpperCase();
 			const subordinateText = subordinateInput;
 
-			const primaryStartX = 591;
-			const capBlue = '#001871';
-			const primaryGray = '#9EA2A2';
+			// Flush-left with the main text/image block
+			const subordinateStartX = 591;
 
-			// Primary line styling
-			const primaryFontSize = 136;
-			const primaryTracking = 25;
-			const primaryBaselineY = 285;
-
-			// Subordinate line styling matched to official CAP SVG output
-			// Official SVG uses: 15px Rajdhani Bold, letter-spacing: 0em
-			// Scaled to this 2000px banner: approximately 79px
+			// Official-style subordinate appearance
 			const subordinateFontSize = 79;
 			const subordinateTracking = 0;
 			const subordinateBaselineY = 383;
+			const capBlue = '#001871';
 
-			// Measure primary text
-			ctx.font = 'bold ' + primaryFontSize + 'px Rajdhani';
-			const primaryWidth = measureTrackedText(primaryText, primaryTracking);
-
-			// Measure subordinate text
 			ctx.font = 'bold ' + subordinateFontSize + 'px Rajdhani';
 			const subordinateWidth = measureTrackedText(subordinateText, subordinateTracking);
 
-			// Align subordinate right edge to primary right edge,
-			// but do not let it extend left of the safe text area.
-			const subordinateStartX = Math.max(
-				primaryStartX,
-				primaryStartX + primaryWidth - subordinateWidth
-			);
-
-			const farthestRight = Math.max(
-				primaryStartX + primaryWidth,
-				subordinateStartX + subordinateWidth
-			);
-
+			const farthestRight = subordinateStartX + subordinateWidth;
 			canvas.width = Math.max(2000, farthestRight + 50);
 			canvas.height = 415;
 
 			await drawSource();
 
-			// Draw primary line
-			ctx.fillStyle = primaryGray;
-			ctx.font = 'bold ' + primaryFontSize + 'px Rajdhani';
-			drawTrackedText(primaryText, primaryStartX, primaryBaselineY, primaryTracking);
-
-			// Draw subordinate line
 			ctx.fillStyle = capBlue;
 			ctx.font = 'bold ' + subordinateFontSize + 'px Rajdhani';
 			drawTrackedText(subordinateText, subordinateStartX, subordinateBaselineY, subordinateTracking);
@@ -325,9 +291,6 @@
 	<p>
 		Please refer to the CAP Brand Portal for additional information and guidance.
 	</p>
-
-	<label for="primaryText">Primary line</label>
-	<input id="primaryText" type="text" placeholder="Insert Primary Text" maxlength="40" value="Insert Primary Text" />
 
 	<label for="subordinateText">Subordinate line</label>
 	<input id="subordinateText" type="text" placeholder="Insert Subordinate Text" maxlength="40" value="Marketing &amp; Communications" />

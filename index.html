@@ -30,16 +30,43 @@
 			canvas = document.getElementById('canvas');
 			ctx = canvas.getContext('2d');
 
+			const subordinateTextInput = document.getElementById('subordinateText');
+			const logoStyleSelect = document.getElementById('logoStyle');
+			const secondaryInput = document.getElementById('secondaryGraphic');
+			const clearButton = document.getElementById('clearSecondaryGraphic');
+			const downloadButton = document.getElementById('download');
+
 			loadFont().then(() => {
+				updateSecondaryGraphicAvailability();
 				renderGraphic();
 			});
 
-			document.getElementById('subordinateText').oninput = renderGraphic;
-			document.getElementById('logoStyle').onchange = renderGraphic;
-			document.getElementById('secondaryGraphic').onchange = handleSecondaryGraphicUpload;
-			document.getElementById('clearSecondaryGraphic').onclick = clearSecondaryGraphic;
-			document.getElementById('download').onclick = download;
+			subordinateTextInput.oninput = renderGraphic;
+			logoStyleSelect.onchange = () => {
+				updateSecondaryGraphicAvailability();
+
+				if (logoStyleSelect.value !== 'blue') {
+					clearSecondaryGraphic();
+				}
+
+				renderGraphic();
+			};
+
+			secondaryInput.onchange = handleSecondaryGraphicUpload;
+			clearButton.onclick = clearSecondaryGraphic;
+			downloadButton.onclick = download;
 		});
+
+		const updateSecondaryGraphicAvailability = () => {
+			const logoStyleSelect = document.getElementById('logoStyle');
+			const secondaryInput = document.getElementById('secondaryGraphic');
+			const clearButton = document.getElementById('clearSecondaryGraphic');
+
+			const isBlue = logoStyleSelect.value === 'blue';
+
+			secondaryInput.disabled = !isBlue;
+			clearButton.disabled = !isBlue;
+		};
 
 		const loadFont = async () => {
 			if (capFont) return;
@@ -94,7 +121,6 @@
 
 				if (a === 0) continue;
 
-				// Remove white / near-white backgrounds
 				if (r > 240 && g > 240 && b > 240) {
 					data[i + 3] = 0;
 				}
@@ -288,9 +314,6 @@
 			const imgWidth = img.width;
 			const imgHeight = img.height;
 
-			// Scale only to fit height, so the graphic keeps its proportions
-			// and uses as much of the added area as needed without squeezing
-			// the main CAP graphic.
 			const scale = Math.min(1, SECONDARY_MAX_HEIGHT / imgHeight);
 
 			const drawWidth = imgWidth * scale;
@@ -320,10 +343,16 @@
 			const selectedStyle = document.getElementById('logoStyle').value;
 
 			const isWhiteVersion = selectedStyle === 'white';
+			const isBlueVersion = !isWhiteVersion;
 			const logoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
 
-			const secondaryImageForMode = await getSecondaryImageForMode(isWhiteVersion);
-			const secondaryLayout = getSecondaryLayout(secondaryImageForMode);
+			const secondaryImageForMode = isBlueVersion
+				? await getSecondaryImageForMode(isWhiteVersion)
+				: null;
+
+			const secondaryLayout = isWhiteVersion
+				? { extraWidth: 0, drawX: 0, drawY: 0, drawWidth: 0, drawHeight: 0 }
+				: getSecondaryLayout(secondaryImageForMode);
 
 			const canvasWidth = BASE_WIDTH + secondaryLayout.extraWidth;
 			const canvasHeight = BASE_HEIGHT;
@@ -385,7 +414,7 @@
 
 			drawTrackedText(text, startX, baselineY, tracking);
 
-			if (secondaryImageForMode) {
+			if (isBlueVersion && secondaryImageForMode) {
 				ctx.drawImage(
 					secondaryImageForMode,
 					secondaryLayout.drawX,
@@ -494,6 +523,12 @@
 			padding: 10px 12px;
 		}
 
+		input:disabled,
+		button:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+
 		.canvas-container {
 			width: 100%;
 			max-width: 1000px;
@@ -535,7 +570,7 @@
 			user-select: none;
 		}
 
-		button:hover {
+		button:hover:not(:disabled) {
 			border-color: rgb(0, 12, 92);
 			background-color: rgb(0, 14, 102);
 		}

@@ -66,6 +66,7 @@
 
 			for (let i = 0; i < str.length; i++) {
 				const char = str[i];
+				ctx.strokeText(char, x, baselineY);
 				ctx.fillText(char, x, baselineY);
 				x += ctx.measureText(char).width + tracking;
 			}
@@ -115,29 +116,22 @@
 			const canvasWidth = 2000;
 			const canvasHeight = 415;
 
-			// Start of text block under the main wordmark
-			const startX = 600;
-
-			// Move the subordinate line up so it sits more like your sample
-			const baselineY = 355;
-
-			// Let it run close to the right edge like your example
+			const startX = 591;
+			const baselineY = 332;
 			const safeRightPadding = 10;
 
 			const capBlue = '#001871';
-			const fontFamily = 'Rajdhani';
-			const fontWeight = 'bold';
 
-			// Much tighter than the previous version.
-			// Your sample image does NOT visually match 25 tracking at this scale.
+			const fontFamily = 'Rajdhani';
+			const fontWeight = '700';
+
 			const tracking = 6;
 
-			// Scale large for short text, but stop before it gets too tall
 			const availableWidth = canvasWidth - startX - safeRightPadding;
-			const targetFillRatio = 0.98;
-			const maxFontSize = 130;
-			const minFontSize = 50;
-			const maxTextHeight = 80;
+			const targetFillRatio = 0.95;
+			const maxFontSize = 78;
+			const minFontSize = 42;
+			const maxTextHeight = 52;
 
 			const fontSize = getResponsiveFontSize(text, {
 				fontFamily,
@@ -156,6 +150,10 @@
 			await drawSource();
 
 			ctx.fillStyle = capBlue;
+			ctx.strokeStyle = capBlue;
+			ctx.lineWidth = 1.2;
+			ctx.lineJoin = 'round';
+			ctx.miterLimit = 2;
 			ctx.font = '700 ' + fontSize + 'px Rajdhani';
 
 			drawTrackedText(text, startX, baselineY, tracking);

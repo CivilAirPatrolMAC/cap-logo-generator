@@ -153,10 +153,10 @@
 			canvas.width = canvasWidth;
 			canvas.height = canvasHeight;
 
-			// ALWAYS clear canvas (no grey baked into export)
+			// Clear canvas (no background baked into export)
 			ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-			// Toggle preview background (CSS only)
+			// Toggle preview-only background
 			if (isWhiteVersion) {
 				canvas.classList.add('white-preview');
 			} else {
@@ -198,11 +198,26 @@
 		body {
 			padding: 50px;
 			font-family: "Ubuntu", sans-serif;
+			color: black;
+			line-height: 1.4;
+		}
+
+		h1 {
+			color: #001871;
+			font-size: 30px;
+			margin-bottom: 10px;
+		}
+
+		p {
+			margin: 10px 0;
 		}
 
 		label {
 			display: block;
 			margin-top: 20px;
+			margin-bottom: 5px;
+			font-weight: 500;
+			color: #001871;
 		}
 
 		input, select {
@@ -210,6 +225,8 @@
 			max-width: 500px;
 			padding: 10px;
 			margin-bottom: 10px;
+			border: 1px solid #9ea2a2;
+			border-radius: 5px;
 		}
 
 		.canvas-container {
@@ -221,13 +238,13 @@
 		#canvas {
 			transform-origin: 0 0;
 			transform: scale(0.3);
-			border: 3px solid rgb(158, 162, 162);
+			border: 3px solid #9ea2a2;
 			padding: 60px;
 			border-radius: 15px;
 			background-color: #ffffff;
 		}
 
-		/* Preview-only grey background */
+		/* Preview-only background for white version */
 		#canvas.white-preview {
 			background-color: #D9D9D9;
 		}
@@ -238,12 +255,43 @@
 			color: white;
 			border: none;
 			cursor: pointer;
+			border-radius: 5px;
+		}
+
+		button:hover {
+			background-color: #000e66;
+		}
+
+		footer {
+			color: #9ea2a2;
+			font-size: 12px;
+			margin-top: 40px;
 		}
 	</style>
 </head>
 <body>
 
 	<h1>Civil Air Patrol Subordinate Graphic Generator</h1>
+
+	<p>
+		Using the tool below, you can generate a Civil Air Patrol subordinate unit, activity or program graphic.
+	</p>
+
+	<p>
+		Squadron names may only be shortened by using abbreviations for the type of unit, such as "Cdt. Sq.", "Comp. Sq.", or "Sr. Sq." as appropriate. The shorter abbreviation "Sq." may be used for all squadron types.
+	</p>
+
+	<p>
+		Do not use or include a unit charter number (e.g. "SWR-TX-388").
+	</p>
+
+	<p>
+		The secondary line can be only one line and not stacked multiple times. Max length shall also be 8 characters beyond the last letter of the first line.
+	</p>
+
+	<p>
+		Please refer to the CAP Brand Portal for additional information and guidance.
+	</p>
 
 	<label for="subordinateText">Subordinate line</label>
 	<input id="subordinateText" type="text" maxlength="30" value="Marketing & Communication">
@@ -259,6 +307,10 @@
 	</div>
 
 	<button id="download">Download</button>
+
+	<footer>
+		Version 8. Last modified on April 7th, 2026. Managed by <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+	</footer>
 
 </body>
 </html>

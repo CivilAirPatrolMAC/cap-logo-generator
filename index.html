@@ -24,6 +24,7 @@
 			});
 
 			document.getElementById('subordinateText').oninput = renderGraphic;
+			document.getElementById('logoStyle').onchange = renderGraphic;
 			document.getElementById('download').onclick = download;
 		});
 
@@ -35,7 +36,7 @@
 			document.fonts.add(capFont);
 		};
 
-		const drawSource = () => {
+		const drawSource = (imagePath) => {
 			return new Promise((resolve) => {
 				const imageSource = new Image();
 
@@ -44,7 +45,7 @@
 					resolve();
 				};
 
-				imageSource.src = 'BlueLogo.png';
+				imageSource.src = imagePath;
 			});
 		};
 
@@ -112,6 +113,10 @@
 
 			const rawInput = document.getElementById('subordinateText').value || 'Marketing & Communication';
 			const text = rawInput.toUpperCase();
+			const selectedStyle = document.getElementById('logoStyle').value;
+
+			const isWhiteVersion = selectedStyle === 'white';
+			const logoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
 
 			const canvasWidth = 2000;
 			const canvasHeight = 415;
@@ -121,6 +126,8 @@
 			const safeRightPadding = 10;
 
 			const capBlue = '#001871';
+			const white = '#FFFFFF';
+			const previewGrey = '#D9D9D9';
 
 			const fontFamily = 'Rajdhani';
 			const fontWeight = '700';
@@ -147,10 +154,19 @@
 			canvas.width = canvasWidth;
 			canvas.height = canvasHeight;
 
-			await drawSource();
+			if (isWhiteVersion) {
+				ctx.fillStyle = previewGrey;
+				ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+			} else {
+				ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+			}
 
-			ctx.fillStyle = capBlue;
-			ctx.strokeStyle = capBlue;
+			await drawSource(logoFile);
+
+			const textColor = isWhiteVersion ? white : capBlue;
+
+			ctx.fillStyle = textColor;
+			ctx.strokeStyle = textColor;
 			ctx.lineWidth = 1.2;
 			ctx.lineJoin = 'round';
 			ctx.miterLimit = 2;
@@ -260,7 +276,8 @@
 			color: #001871;
 		}
 
-		input {
+		input,
+		select {
 			display: block;
 			width: 100%;
 			max-width: 500px;
@@ -286,6 +303,7 @@
 			border: 3px solid rgb(158, 162, 162);
 			padding: 60px;
 			border-radius: 15px;
+			background-color: #ffffff;
 		}
 
 		button {
@@ -351,6 +369,12 @@
 
 	<label for="subordinateText">Subordinate line</label>
 	<input id="subordinateText" type="text" maxlength="30" placeholder="Insert Subordinate Text" value="Marketing & Communication">
+
+	<label for="logoStyle">Logo version</label>
+	<select id="logoStyle">
+		<option value="blue" selected>All Blue</option>
+		<option value="white">All White</option>
+	</select>
 
 	<div class="canvas-container">
 		<canvas id="canvas" width="2000" height="415"></canvas>

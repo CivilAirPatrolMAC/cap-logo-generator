@@ -1,21 +1,20 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Civil Air Patrol Subordinate Graphic Generator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>Civil Air Patrol Subordinate Graphic Generator</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="shortcut icon" href="favicon.png">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500&display=block" rel="stylesheet">
+
 	<script type="text/javascript">
 		let canvas;
 		let ctx;
 		let text = '';
-		let textWidth = 0;
 
-		// Init the page
 		document.addEventListener('DOMContentLoaded', () => {
 			canvas = document.getElementById('canvas');
 			ctx = canvas.getContext('2d');
@@ -26,7 +25,7 @@
 			document.getElementById('download').onclick = () => {
 				download();
 			};
-			
+
 			document.getElementById('text').oninput = () => {
 				const tmpText = document.getElementById('text').value;
 
@@ -36,7 +35,6 @@
 			};
 		});
 
-		// Add the template source (the CAP Logo)
 		const drawSource = () => {
 			const imageSource = new Image();
 
@@ -47,61 +45,85 @@
 			imageSource.src = 'source.svg';
 		};
 
-		// Add the text to the canvas
+		const drawTrackedText = (str, startX, y, tracking) => {
+			let x = startX;
+
+			for (let i = 0; i < str.length; i++) {
+				const char = str[i];
+				ctx.fillText(char, x, y);
+				x += ctx.measureText(char).width + tracking;
+			}
+
+			return x - startX;
+		};
+
+		const measureTrackedText = (str, tracking) => {
+			let width = 0;
+
+			for (let i = 0; i < str.length; i++) {
+				width += ctx.measureText(str[i]).width;
+				if (i < str.length - 1) {
+					width += tracking;
+				}
+			}
+
+			return width;
+		};
+
 		const drawText = (str) => {
 			const fontSource = new FontFace('Rajdhani', 'url(font.woff2)');
 
 			fontSource.load().then((font) => {
 				document.fonts.add(font);
 
-				ctx.fillStyle = '#9EA2A2';
-				ctx.font = '136px Rajdhani';
-
 				text = str.toUpperCase();
-				// text = 'David Lee "Tex" Hill Composite Squadron'.toUpperCase();
-				// text = 'U.S. Air Force Auxiliary'.toUpperCase();
-				textWidth = ctx.measureText(text).width;
-				console.warn(textWidth)
+
+				// 15pt ~= 20px
+				const fontSizePx = 20;
+				const tracking = 25;
+				const startX = 591;
+				const baselineY = 383;
+
+				ctx.fillStyle = '#001871';
+				ctx.font = 'bold ' + fontSizePx + 'px Rajdhani';
+
+				const textWidth = measureTrackedText(text, tracking);
 
 				if (textWidth > 1410) {
-					canvas.width = 591 + textWidth;
+					canvas.width = 591 + textWidth + 50;
 				} else {
 					canvas.width = 2000;
 				}
 
 				drawSource();
 
-				ctx.fillStyle = '#9EA2A2';
-				ctx.font = '136px Rajdhani';
+				ctx.fillStyle = '#001871';
+				ctx.font = 'bold ' + fontSizePx + 'px Rajdhani';
 
-				ctx.fillText(text, 591, 383);
+				drawTrackedText(text, startX, baselineY, tracking);
 			});
 		};
 
-		// Download the image on click
 		const download = () => {
 			const tmpLink = document.createElement('a');
 			let e;
 			tmpLink.download = 'Graphic.png';
-			tmpLink.href = canvas.toDataURL('image/png;base64');
+			tmpLink.href = canvas.toDataURL('image/png');
 
-			// Create a "fake" click-event to trigger the download
 			if (document.createEvent) {
 				e = document.createEvent('MouseEvents');
-
 				e.initMouseEvent('click', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-
 				tmpLink.dispatchEvent(e);
 			} else if (tmpLink.fireEvent) {
 				tmpLink.fireEvent('onclick');
 			}
 		};
 
-		// Clear the canvas
 		const clear = () => {
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 		};
 	</script>
+
 	<style type="text/css">
 		html, body, div, span, applet, object, iframe,
 		h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -112,8 +134,8 @@
 		dl, dt, dd, ol, ul, li,
 		fieldset, form, label, legend,
 		table, caption, tbody, tfoot, thead, tr, th, td,
-		article, aside, canvas, details, embed, 
-		figure, figcaption, footer, header, hgroup, 
+		article, aside, canvas, details, embed,
+		figure, figcaption, footer, header, hgroup,
 		menu, nav, output, ruby, section, summary,
 		time, mark, audio, video {
 			margin: 0;
@@ -123,31 +145,34 @@
 			font: inherit;
 			vertical-align: baseline;
 		}
-		/* HTML5 display-role reset for older browsers */
-		article, aside, details, figcaption, figure, 
+
+		article, aside, details, figcaption, figure,
 		footer, header, hgroup, menu, nav, section {
 			display: block;
 		}
+
 		body {
 			line-height: 1;
 		}
+
 		ol, ul {
 			list-style: none;
 		}
+
 		blockquote, q {
 			quotes: none;
 		}
+
 		blockquote:before, blockquote:after,
 		q:before, q:after {
 			content: '';
 			content: none;
 		}
+
 		table {
 			border-collapse: collapse;
 			border-spacing: 0;
 		}
-
-		/*****/
 
 		body {
 			padding: 50px;
@@ -157,9 +182,11 @@
 			font-weight: 400;
 			font-size: 1em;
 		}
+
 		a {
 			color: rgb(0, 20, 137);
 		}
+
 		h1 {
 			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 			color: #001871;
@@ -168,9 +195,11 @@
 			font-weight: 500;
 			margin: 0 0 10px;
 		}
+
 		p {
 			margin: 10px 0;
 		}
+
 		input {
 			border: 1px solid rgb(158, 162, 162);
 			border-radius: 5px;
@@ -182,11 +211,13 @@
 			color: rgb(0, 0, 0);
 			margin-top: 50px;
 		}
+
 		.canvas-container {
 			width: 600px;
 			height: 161px;
 			margin: 20px 0;
 		}
+
 		#canvas {
 			transform-origin: 0 0;
 			transform: scale(0.3);
@@ -194,6 +225,7 @@
 			padding: 60px;
 			border-radius: 15px;
 		}
+
 		button {
 			transition: all 0.2s ease-in-out;
 			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -209,11 +241,13 @@
 			cursor: pointer;
 			user-select: none;
 		}
+
 		button:hover {
 			color: rgb(255, 255, 255);
 			border-color: rgb(0, 12, 92);
 			background-color: rgb(0, 14, 102);
 		}
+
 		footer {
 			font-family: "Ubuntu", "Mier B", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 			color: rgb(158, 162, 162);
@@ -221,6 +255,7 @@
 			padding: 20px 0;
 			margin-top: 50px;
 		}
+
 		footer a {
 			color: inherit;
 		}
@@ -243,9 +278,11 @@
 	<p>
 		Do not use or include a unit charter number (e.g. "SWR-TX-388").
 	</p>
+
 	<p>
 		The secondary line can be only one line and not stacked multiple times. Max length shall also be 8 characters beyond the last letter of the first line.
 	</p>
+
 	<p>
 		Please refer to the CAP Brand Portal for additional information and guidance.
 	</p>
@@ -258,7 +295,9 @@
 
 	<button id="download">Download</button>
 
-	<footer>Version 7. Last modified on March 2nd, 2026. Managed by <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.</footer>
+	<footer>
+		Version 7. Last modified on March 2nd, 2026. Managed by <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+	</footer>
 
 </body>
 </html>

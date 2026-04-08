@@ -10,6 +10,19 @@ const BASE_HEIGHT = 415;
 const SECONDARY_PADDING_LEFT = 35;
 const SECONDARY_PADDING_RIGHT = 35;
 
+const input = document.getElementById('subordinate');
+
+input.addEventListener('input', function () {
+  const cursorPosition = this.selectionStart;
+  const updated = normalizeSubordinateText(this.value);
+
+  this.value = updated;
+
+  // Optional: restore cursor position (basic handling)
+  this.setSelectionRange(cursorPosition, cursorPosition);
+});
+
+
 const emblemOptions = [
 	// Regions
 	{ value: 'rocky-mountain-region', label: 'Rocky Mountain Region', type: 'Region', path: '', available: false },

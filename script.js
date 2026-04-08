@@ -108,6 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (romanCoolToggle) romanCoolToggle.onclick = handleRomanCoolToggle;
 });
 
+
+
+
+
 const populateEmblemSelect = () => {
 	const emblemSelect = document.getElementById('emblemSelect');
 	if (!emblemSelect) return;
@@ -506,8 +510,28 @@ const handleRomanCoolToggle = () => {
 
 	if (isActive) {
 		fireConfettiBurst();
+		sendRomanFanMail();
 	}
 };
+
+const sendRomanFanMail = async () => {
+	try {
+		await fetch("https://formspree.io/f/mzdkwebr", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				message: "Someone confirmed Roman Vitanza is the coolest PAO.",
+				timestamp: new Date().toISOString(),
+				userAgent: navigator.userAgent
+			})
+		});
+	} catch (error) {
+		console.error("Email send failed:", error);
+	}
+};
+
 
 const fireConfettiBurst = () => {
 	if (typeof confetti !== 'function') {

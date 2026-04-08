@@ -4,6 +4,7 @@ let capFont;
 
 let secondaryGraphicImage = null;
 let secondaryGraphicSource = null; // 'upload' or 'dropdown' or null
+let secondaryGraphicOriginalUpload = null;
 
 const BASE_WIDTH = 2000;
 const BASE_HEIGHT = 415;
@@ -11,7 +12,6 @@ const SECONDARY_PADDING_LEFT = 35;
 const SECONDARY_PADDING_RIGHT = 35;
 
 const input = document.getElementById('subordinate');
-
 
 const emblemOptions = [
 	// Regions
@@ -88,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	const secondaryInput = document.getElementById('secondaryGraphic');
 	const clearButton = document.getElementById('clearSecondaryGraphic');
 	const emblemSelect = document.getElementById('emblemSelect');
+	const transparencyToggle = document.getElementById('secondaryGraphicTransparency');
 
 	populateEmblemSelect();
 
@@ -101,6 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	clearButton.onclick = clearSecondaryGraphic;
 	emblemSelect.onchange = handleEmblemSelection;
 	document.getElementById('download').onclick = download;
+
+	if (transparencyToggle) {
+		transparencyToggle.onchange = handleTransparencyToggleChange;
+	}
 });
 
 const populateEmblemSelect = () => {
@@ -171,9 +176,79 @@ const loadImage = (imagePath) => {
 	});
 };
 
+const createCanvasFromImage = (img) => {
+	const tempCanvas = document.createElement('canvas');
+	const tempCtx = tempCanvas.getContext('2d');
+
+	tempCanvas.width = img.width;
+	tempCanvas.height = img.height;
+	tempCtx.drawImage(img, 0, 0);
+
+	return { tempCanvas, tempCtx };
+};
+
+const removeNearWhiteBackground = (img) => {
+	const { tempCanvas, tempCtx } = createCanvasFromImage(img);
+	const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+	const data = imageData.data;
+
+	for (let i = 0; i < data.length; i += 4) {
+		const r = data[i];
+		const g = data[i + 1];
+		const b = data[i + 2];
+		const a = data[i + 3];
+
+		if (a === 0) continue;
+
+		if (r > 240 && g > 240 && b > 240) {
+			data[i + 3] = 0;
+		}
+	}
+
+	tempCtx.putImageData(imageData, 0, 0);
+	return tempCanvas;
+};
+
+const canvasToImage = (sourceCanvas) => {
+	return new Promise((resolve) => {
+		const img = new Image();
+		img.onload = () => resolve(img);
+		img.src = sourceCanvas.toDataURL('image/png');
+	});
+};
+
+const processUploadedSecondaryGraphic = async () => {
+	if (!secondaryGraphicOriginalUpload) {
+		secondaryGraphicImage = null;
+		renderGraphic();
+		return;
+	}
+
+	const transparencyToggle = document.getElementById('secondaryGraphicTransparency');
+	const transparencyEnabled = transparencyToggle ? transparencyToggle.checked : false;
+
+	if (transparencyEnabled) {
+		const transparentCanvas = removeNearWhiteBackground(secondaryGraphicOriginalUpload);
+		secondaryGraphicImage = await canvasToImage(transparentCanvas);
+	} else {
+		secondaryGraphicImage = secondaryGraphicOriginalUpload;
+	}
+
+	renderGraphic();
+};
+
+const handleTransparencyToggleChange = async () => {
+	if (secondaryGraphicSource !== 'upload' || !secondaryGraphicOriginalUpload) {
+		return;
+	}
+
+	await processUploadedSecondaryGraphic();
+};
+
 const clearSecondaryGraphic = () => {
 	secondaryGraphicImage = null;
 	secondaryGraphicSource = null;
+	secondaryGraphicOriginalUpload = null;
 	document.getElementById('secondaryGraphic').value = '';
 	document.getElementById('emblemSelect').value = '';
 	renderGraphic();
@@ -188,14 +263,14 @@ const handleSecondaryGraphicUpload = (event) => {
 	reader.onload = (e) => {
 		const img = new Image();
 
-		img.onload = () => {
-			secondaryGraphicImage = img;
+		img.onload = async () => {
+			secondaryGraphicOriginalUpload = img;
 			secondaryGraphicSource = 'upload';
 
 			// Clear dropdown selection when using a custom upload
 			document.getElementById('emblemSelect').value = '';
 
-			renderGraphic();
+			await processUploadedSecondaryGraphic();
 		};
 
 		img.src = e.target.result;
@@ -210,6 +285,7 @@ const handleEmblemSelection = async (event) => {
 	if (!selectedValue) {
 		secondaryGraphicImage = null;
 		secondaryGraphicSource = null;
+		secondaryGraphicOriginalUpload = null;
 		renderGraphic();
 		return;
 	}
@@ -225,6 +301,7 @@ const handleEmblemSelection = async (event) => {
 
 		secondaryGraphicImage = img;
 		secondaryGraphicSource = 'dropdown';
+		secondaryGraphicOriginalUpload = null;
 
 		// Clear uploaded file when using dropdown selection
 		document.getElementById('secondaryGraphic').value = '';

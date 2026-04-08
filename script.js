@@ -12,16 +12,6 @@ const SECONDARY_PADDING_RIGHT = 35;
 
 const input = document.getElementById('subordinate');
 
-input.addEventListener('input', function () {
-  const cursorPosition = this.selectionStart;
-  const updated = normalizeSubordinateText(this.value);
-
-  this.value = updated;
-
-  // Optional: restore cursor position (basic handling)
-  this.setSelectionRange(cursorPosition, cursorPosition);
-});
-
 
 const emblemOptions = [
 	// Regions

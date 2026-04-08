@@ -476,6 +476,47 @@ const renderGraphic = async () => {
 	}
 };
 
+document.addEventListener('DOMContentLoaded', () => {
+	canvas = document.getElementById('canvas');
+	ctx = canvas.getContext('2d');
+
+	const subordinateTextInput = document.getElementById('subordinateText');
+	const logoStyleSelect = document.getElementById('logoStyle');
+	const secondaryInput = document.getElementById('secondaryGraphic');
+	const clearButton = document.getElementById('clearSecondaryGraphic');
+	const emblemSelect = document.getElementById('emblemSelect');
+	const transparencyToggle = document.getElementById('secondaryGraphicTransparency');
+	const romanCoolToggle = document.getElementById('romanCoolToggle');
+
+	populateEmblemSelect();
+
+	loadFont().then(() => {
+		renderGraphic();
+	});
+
+	subordinateTextInput.oninput = renderGraphic;
+	logoStyleSelect.onchange = renderGraphic;
+	secondaryInput.onchange = handleSecondaryGraphicUpload;
+	clearButton.onclick = clearSecondaryGraphic;
+	emblemSelect.onchange = handleEmblemSelection;
+	document.getElementById('download').onclick = download;
+
+	if (transparencyToggle) {
+		transparencyToggle.onchange = handleTransparencyToggleChange;
+	}
+
+	if (romanCoolToggle) {
+		romanCoolToggle.onclick = () => {
+			const isActive = romanCoolToggle.classList.toggle('active');
+			romanCoolToggle.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+
+			if (isActive) {
+				fireConfettiBurst();
+			}
+		};
+	}
+});
+
 const download = () => {
 	const a = document.createElement('a');
 	a.download = 'Graphic.png';

@@ -143,4 +143,34 @@
 		footer a {
 			color: inherit;
 		}
+.secondary-graphic-row {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex-wrap: wrap;
+	max-width: 800px;
+}
+
+.secondary-graphic-row input[type="file"] {
+	flex: 1 1 420px;
+	min-width: 260px;
+}
+
+.checkbox-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	font-weight: 400;
+	color: rgb(0, 0, 0);
+	white-space: nowrap;
+}
+
+.checkbox-label input[type="checkbox"] {
+	width: auto;
+	max-width: none;
+	margin: 0;
+	padding: 0;
+}
+
 	</style>

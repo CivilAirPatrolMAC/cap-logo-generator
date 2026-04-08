@@ -89,6 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	const clearButton = document.getElementById('clearSecondaryGraphic');
 	const emblemSelect = document.getElementById('emblemSelect');
 	const transparencyToggle = document.getElementById('secondaryGraphicTransparency');
+	const romanCoolToggle = document.getElementById('romanCoolToggle');
+	const downloadButton = document.getElementById('download');
 
 	populateEmblemSelect();
 
@@ -96,20 +98,20 @@ document.addEventListener('DOMContentLoaded', () => {
 		renderGraphic();
 	});
 
-	subordinateTextInput.oninput = renderGraphic;
-	logoStyleSelect.onchange = renderGraphic;
-	secondaryInput.onchange = handleSecondaryGraphicUpload;
-	clearButton.onclick = clearSecondaryGraphic;
-	emblemSelect.onchange = handleEmblemSelection;
-	document.getElementById('download').onclick = download;
-
-	if (transparencyToggle) {
-		transparencyToggle.onchange = handleTransparencyToggleChange;
-	}
+	if (subordinateTextInput) subordinateTextInput.oninput = renderGraphic;
+	if (logoStyleSelect) logoStyleSelect.onchange = renderGraphic;
+	if (secondaryInput) secondaryInput.onchange = handleSecondaryGraphicUpload;
+	if (clearButton) clearButton.onclick = clearSecondaryGraphic;
+	if (emblemSelect) emblemSelect.onchange = handleEmblemSelection;
+	if (downloadButton) downloadButton.onclick = download;
+	if (transparencyToggle) transparencyToggle.onchange = handleTransparencyToggleChange;
+	if (romanCoolToggle) romanCoolToggle.onclick = handleRomanCoolToggle;
 });
 
 const populateEmblemSelect = () => {
 	const emblemSelect = document.getElementById('emblemSelect');
+	if (!emblemSelect) return;
+
 	emblemSelect.innerHTML = '';
 
 	const noneOption = document.createElement('option');
@@ -249,8 +251,13 @@ const clearSecondaryGraphic = () => {
 	secondaryGraphicImage = null;
 	secondaryGraphicSource = null;
 	secondaryGraphicOriginalUpload = null;
-	document.getElementById('secondaryGraphic').value = '';
-	document.getElementById('emblemSelect').value = '';
+
+	const secondaryGraphicInput = document.getElementById('secondaryGraphic');
+	const emblemSelect = document.getElementById('emblemSelect');
+
+	if (secondaryGraphicInput) secondaryGraphicInput.value = '';
+	if (emblemSelect) emblemSelect.value = '';
+
 	renderGraphic();
 };
 
@@ -267,8 +274,10 @@ const handleSecondaryGraphicUpload = (event) => {
 			secondaryGraphicOriginalUpload = img;
 			secondaryGraphicSource = 'upload';
 
-			// Clear dropdown selection when using a custom upload
-			document.getElementById('emblemSelect').value = '';
+			const emblemSelect = document.getElementById('emblemSelect');
+			if (emblemSelect) {
+				emblemSelect.value = '';
+			}
 
 			await processUploadedSecondaryGraphic();
 		};
@@ -303,8 +312,10 @@ const handleEmblemSelection = async (event) => {
 		secondaryGraphicSource = 'dropdown';
 		secondaryGraphicOriginalUpload = null;
 
-		// Clear uploaded file when using dropdown selection
-		document.getElementById('secondaryGraphic').value = '';
+		const secondaryGraphicInput = document.getElementById('secondaryGraphic');
+		if (secondaryGraphicInput) {
+			secondaryGraphicInput.value = '';
+		}
 
 		renderGraphic();
 	} catch (error) {
@@ -408,9 +419,12 @@ const getSecondaryLayout = (img) => {
 const renderGraphic = async () => {
 	if (!ctx || !capFont) return;
 
-	const rawInput = document.getElementById('subordinateText').value || 'Marketing & Communication';
-	const text = rawInput.toUpperCase();
-	const selectedStyle = document.getElementById('logoStyle').value;
+	const subordinateTextInput = document.getElementById('subordinateText');
+	const logoStyleSelect = document.getElementById('logoStyle');
+
+	const rawInput = subordinateTextInput ? subordinateTextInput.value : 'Marketing & Communication';
+	const text = (rawInput || 'Marketing & Communication').toUpperCase();
+	const selectedStyle = logoStyleSelect ? logoStyleSelect.value : 'blue';
 
 	const isWhiteVersion = selectedStyle === 'white';
 	const logoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
@@ -454,13 +468,20 @@ const renderGraphic = async () => {
 		canvas.classList.remove('white-preview');
 	}
 
-	await drawSource(logoFile);
+	try {
+		await drawSource(logoFile);
+	} catch (error) {
+		console.error('Could not load base logo:', error);
+		return;
+	}
 
 	const textColor = isWhiteVersion ? white : capBlue;
 
 	ctx.fillStyle = textColor;
 	ctx.strokeStyle = textColor;
 	ctx.lineWidth = 1.2;
+	ctx.lineJoin = 'round';
+	ctx.miterLimit = 2;
 	ctx.font = '700 ' + fontSize + 'px Rajdhani';
 
 	drawTrackedText(text, startX, baselineY, tracking);
@@ -476,46 +497,46 @@ const renderGraphic = async () => {
 	}
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-	canvas = document.getElementById('canvas');
-	ctx = canvas.getContext('2d');
-
-	const subordinateTextInput = document.getElementById('subordinateText');
-	const logoStyleSelect = document.getElementById('logoStyle');
-	const secondaryInput = document.getElementById('secondaryGraphic');
-	const clearButton = document.getElementById('clearSecondaryGraphic');
-	const emblemSelect = document.getElementById('emblemSelect');
-	const transparencyToggle = document.getElementById('secondaryGraphicTransparency');
+const handleRomanCoolToggle = () => {
 	const romanCoolToggle = document.getElementById('romanCoolToggle');
+	if (!romanCoolToggle) return;
 
-	populateEmblemSelect();
+	const isActive = romanCoolToggle.classList.toggle('active');
+	romanCoolToggle.setAttribute('aria-pressed', isActive ? 'true' : 'false');
 
-	loadFont().then(() => {
-		renderGraphic();
+	if (isActive) {
+		fireConfettiBurst();
+	}
+};
+
+const fireConfettiBurst = () => {
+	if (typeof confetti !== 'function') {
+		console.error('Confetti library did not load.');
+		return;
+	}
+
+	confetti({
+		particleCount: 140,
+		spread: 80,
+		origin: { y: 0.6 }
 	});
 
-	subordinateTextInput.oninput = renderGraphic;
-	logoStyleSelect.onchange = renderGraphic;
-	secondaryInput.onchange = handleSecondaryGraphicUpload;
-	clearButton.onclick = clearSecondaryGraphic;
-	emblemSelect.onchange = handleEmblemSelection;
-	document.getElementById('download').onclick = download;
+	setTimeout(() => {
+		confetti({
+			particleCount: 90,
+			angle: 60,
+			spread: 60,
+			origin: { x: 0, y: 0.7 }
+		});
 
-	if (transparencyToggle) {
-		transparencyToggle.onchange = handleTransparencyToggleChange;
-	}
-
-	if (romanCoolToggle) {
-		romanCoolToggle.onclick = () => {
-			const isActive = romanCoolToggle.classList.toggle('active');
-			romanCoolToggle.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-
-			if (isActive) {
-				fireConfettiBurst();
-			}
-		};
-	}
-});
+		confetti({
+			particleCount: 90,
+			angle: 120,
+			spread: 60,
+			origin: { x: 1, y: 0.7 }
+		});
+	}, 180);
+};
 
 const download = () => {
 	const a = document.createElement('a');

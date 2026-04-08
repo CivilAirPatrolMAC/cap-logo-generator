@@ -43,7 +43,7 @@ const emblemOptions = [
 	{ value: 'iowa', label: 'Iowa', type: 'State', path: '', available: false },
 	{ value: 'kansas', label: 'Kansas', type: 'State', path: '', available: false },
 	{ value: 'kentucky', label: 'Kentucky', type: 'State', path: '', available: false },
-	{ value: 'louisiana', label: 'Louisiana', type: 'State', path: '', available: false },
+	{ value: 'louisiana', label: 'Louisiana', type: 'State', path: 'wing/laemblem.png', available: false },
 	{ value: 'maine', label: 'Maine', type: 'State', path: '', available: false },
 	{ value: 'maryland', label: 'Maryland', type: 'State', path: '', available: false },
 	{ value: 'massachusetts', label: 'Massachusetts', type: 'State', path: '', available: false },

@@ -502,15 +502,22 @@ const renderGraphic = async () => {
 };
 
 const handleRomanCoolToggle = () => {
-	const romanCoolToggle = document.getElementById('romanCoolToggle');
-	if (!romanCoolToggle) return;
+	const button = document.getElementById('romanCoolToggle');
+	if (!button) return;
 
-	const isActive = romanCoolToggle.classList.toggle('active');
-	romanCoolToggle.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+	const isActive = button.classList.toggle('active');
+	button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
 
 	if (isActive) {
+		// Keep original size by locking width
+		const width = button.offsetWidth + "px";
+		button.style.width = width;
+
+		// Change text
+		button.textContent = "Your compliance has been recorded";
+
 		fireConfettiBurst();
-		sendRomanFanMail();
+		sendRomanFanMail?.(); // optional, if you kept email feature
 	}
 };
 

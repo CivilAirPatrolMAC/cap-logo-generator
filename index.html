@@ -1,19 +1,19 @@
 <!doctype html>
 <html lang="en">
-	<script src="script.js"></script>
-	<link rel="stylesheet" href="styles.css">
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<title>Civil Air Patrol Subordinate Graphic Generator</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<link rel="shortcut icon" href="favicon.png">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500&display=block" rel="stylesheet">
+	<link rel="stylesheet" href="styles.css">
+
 	<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-	<script src="script.js"></script>
-	
+	<script src="script.js" defer></script>
 </head>
 <body>
 
@@ -42,7 +42,13 @@
 	</p>
 
 	<label for="subordinateText">Subordinate line</label>
-	<input id="subordinateText" type="text" maxlength="30" placeholder="Insert Subordinate Text" value="Marketing & Communication">
+	<input
+		id="subordinateText"
+		type="text"
+		maxlength="30"
+		placeholder="Insert Subordinate Text"
+		value="Marketing & Communication"
+	>
 
 	<label for="logoStyle">Logo version</label>
 	<select id="logoStyle">
@@ -50,37 +56,37 @@
 		<option value="white">All White</option>
 	</select>
 
-	
-<label for="emblemSelect">Wing or region emblem</label>
-		<div id="title_warning" class="subtle-warning" aria-live="polite">
-          To have your Wing or Region added, email a PNG to <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
-        </div>
-<select id="emblemSelect">
-	<option value="">None</option>
-	<option value="">Southwest Region</option>
-</select>
+	<label for="emblemSelect">Wing or region emblem</label>
+	<div class="subtle-warning" aria-live="polite">
+		To have your Wing or Region added, email a PNG to <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+	</div>
+	<select id="emblemSelect">
+		<option value="">None</option>
+	</select>
 
-	
 	<label for="secondaryGraphic">Upload secondary graphic</label>
-<div id="title_warning" class="subtle-warning" aria-live="polite">
-	Only use approved Region, Wing, and Squadron emblematics. Special activities must use the host region's or wing's emblem.
-</div>
+	<div class="subtle-warning" aria-live="polite">
+		Only use approved Region, Wing, and Squadron emblematics. Special activities must use the host region's or wing's emblem.
+	</div>
 
-<div class="secondary-graphic-row">
-	<input id="secondaryGraphic" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml">
+	<div class="secondary-graphic-row">
+		<input
+			id="secondaryGraphic"
+			type="file"
+			accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+		>
 
-	<label for="secondaryGraphicTransparency" class="checkbox-label">
-		<input type="checkbox" id="secondaryGraphicTransparency">
-		Attempt to make the white background transparent
-	</label>
-</div>
+		<label for="secondaryGraphicTransparency" class="checkbox-label">
+			<input type="checkbox" id="secondaryGraphicTransparency">
+			Attempt to make the white background transparent
+		</label>
+	</div>
 
-<div class="roman-toggle-wrap">
-	<button id="romanCoolToggle" type="button" class="roman-toggle-button" aria-pressed="false">
-		Click this if you believe that Roman Vitanza is the coolest public affairs officer in the entire organization
-	</button>
-</div>
-	
+	<div class="roman-toggle-wrap">
+		<button id="romanCoolToggle" type="button" class="roman-toggle-button" aria-pressed="false">
+			Click this if you believe that Roman Vitanza is the coolest public affairs officer in the entire organization
+		</button>
+	</div>
 
 	<div class="canvas-container">
 		<canvas id="canvas" width="2000" height="415"></canvas>

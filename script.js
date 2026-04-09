@@ -63,7 +63,7 @@ function populateEmblemSelect() {
 	noneOption.textContent = 'None';
 	emblemSelect.appendChild(noneOption);
 
-	const groupOrder = ['Region', 'Wing', 'Group', 'Squadron'];
+	const groupOrder = ['NCSA', 'Region', 'Wing', 'Group', 'Squadron'];
 	const groupLabels = {
 		Region: 'Regions',
 		NCSA: 'NCSA',

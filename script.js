@@ -14,16 +14,10 @@ const SECONDARY_GRAPHIC_OFFSET_LEFT = 340;
 const SUBORDINATE_TARGET_FILL_RATIO = 0.985;
 const SUBORDINATE_MAX_TEXT_HEIGHT = 70;
 
-// Secondary emblem tuning
-const SECONDARY_BLOCK_HEIGHT_RATIO = 0.96;
-const SECONDARY_MAX_WIDTH = 420;
+// Visible bounds detection
 const VISIBLE_BOUNDS_ALPHA_THRESHOLD = 16;
 const VISIBLE_BOUNDS_WHITE_THRESHOLD = 245;
 const VISIBLE_BOUNDS_PADDING = 2;
-
-// CAP wordmark block tuning
-const PRIMARY_BLOCK_TOP = 58;
-const PRIMARY_BLOCK_BOTTOM = 190;
 
 let canvas;
 let ctx;
@@ -168,7 +162,7 @@ function loadImage(imagePath) {
 	});
 }
 
-async function drawBaseLogo(imagePath) {
+async function getBaseLogoLayout(imagePath) {
 	const img = await loadImage(imagePath);
 
 	const scale = (BASE_HEIGHT / img.height) * BASE_LOGO_SCALE_MULTIPLIER;
@@ -176,13 +170,20 @@ async function drawBaseLogo(imagePath) {
 	const drawHeight = img.height * scale;
 	const offsetY = (BASE_HEIGHT - drawHeight) / 2;
 
-	ctx.drawImage(img, 0, offsetY, drawWidth, drawHeight);
-
 	return {
 		drawWidth,
 		drawHeight,
 		offsetY
 	};
+}
+
+async function drawBaseLogo(imagePath) {
+	const layout = await getBaseLogoLayout(imagePath);
+	const img = await loadImage(imagePath);
+
+	ctx.drawImage(img, 0, layout.offsetY, layout.drawWidth, layout.drawHeight);
+
+	return layout;
 }
 
 function createCanvasFromImage(img) {
@@ -395,20 +396,6 @@ function getResponsiveFontSize(text, options) {
 	);
 }
 
-function getTextVerticalBounds(text, fontSize, baselineY) {
-	ctx.font = `700 ${fontSize}px Rajdhani`;
-	const metrics = ctx.measureText(text || 'H');
-
-	const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.8;
-	const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2;
-
-	return {
-		top: baselineY - ascent,
-		bottom: baselineY + descent,
-		height: ascent + descent
-	};
-}
-
 function getVisibleImageBounds(img) {
 	const { tempCanvas, tempCtx } = createCanvasFromImage(img);
 	const { width, height } = tempCanvas;
@@ -486,7 +473,6 @@ function getSecondaryLayout(img, logoTop, logoBottom) {
 	}
 
 	const visibleBounds = getVisibleImageBounds(img);
-
 	const logoHeight = Math.max(1, logoBottom - logoTop);
 	const scale = logoHeight / visibleBounds.height;
 
@@ -525,7 +511,8 @@ async function renderGraphic() {
 	const selectedStyle = logoStyleSelect?.value || 'blue';
 
 	const isWhiteVersion = selectedStyle === 'white';
-	const logoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
+	const displayLogoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
+	const referenceLogoFile = 'BlueLogo.png';
 
 	canvas.width = BASE_WIDTH;
 	canvas.height = BASE_HEIGHT;
@@ -533,16 +520,17 @@ async function renderGraphic() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	canvas.classList.toggle('white-preview', isWhiteVersion);
 
-	let baseLogoLayout;
+	let referenceLogoLayout;
 	try {
-		baseLogoLayout = await drawBaseLogo(logoFile);
+		referenceLogoLayout = await getBaseLogoLayout(referenceLogoFile);
+		await drawBaseLogo(displayLogoFile);
 	} catch (error) {
 		console.error('Could not load base logo:', error);
 		return;
 	}
 
-	const logoTop = baseLogoLayout.offsetY;
-	const logoBottom = baseLogoLayout.offsetY + baseLogoLayout.drawHeight;
+	const logoTop = referenceLogoLayout.offsetY;
+	const logoBottom = referenceLogoLayout.offsetY + referenceLogoLayout.drawHeight;
 
 	const tracking = text.length > 20 ? 1 : 3;
 	const defaultWordmarkWidth = DEFAULT_WORDMARK_RIGHT - WORDMARK_LEFT;

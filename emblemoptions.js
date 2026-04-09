@@ -82,7 +82,7 @@ export const emblemOptions = [
 
 	//Squadrons
 	{ value: 'TX388', label: 'SWR-TX-388', type: 'Squadron', path: 'squadron/tx388emblem.png', available: true },
-	{ value: 'TX154', label: 'SWR-TX-154', type: 'Squadron', path: '', available: false }
+	{ value: 'TX154', label: 'SWR-TX-154', type: 'Squadron', path: 'squadron/tx154emblem.png', available: false }
 
 
 ];

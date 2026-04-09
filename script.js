@@ -1,6 +1,6 @@
 import { emblemOptions } from './emblemoptions.js';
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/a/macros/cap.gov/s/AKfycbyHr_EL33vJ6t4kMSOktZ4ztcqtpDVrOLOO2iZlCnm3SV1TtMb64TgoVv9WH4OkNlFL8Q/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfNay4q7owABhnnHXXM5pYXgaUCRaJVi1w358tTpAvu-gD7fvo_bHwPL5GLGsO8n8L6w/exec';
 const GOOGLE_SCRIPT_SECRET = 'romanvitanza';
 
 let canvas;

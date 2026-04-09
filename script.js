@@ -426,7 +426,7 @@ async function renderGraphic() {
 		return;
 	}
 
-	const wordmarkLeft = 400;
+	const wordmarkLeft = 420;
 	const defaultWordmarkRight = 1125;
 	const wordmarkRight = secondaryGraphicImage
 		? Math.min(defaultWordmarkRight, secondaryLayout.drawX - 10)

@@ -151,10 +151,17 @@ function loadImage(imagePath) {
 
 async function drawBaseLogo(imagePath) {
 	const img = await loadImage(imagePath);
-	const scale = BASE_HEIGHT / img.height;
-	const drawWidth = img.width * scale;
 
-	ctx.drawImage(img, 0, 0, drawWidth, BASE_HEIGHT);
+	const scaleMultiplier = 1.15; // 
+
+	const scale = (BASE_HEIGHT / img.height) * scaleMultiplier;
+	const drawWidth = img.width * scale;
+	const drawHeight = img.height * scale;
+
+	// Keep it vertically centered after scaling
+	const offsetY = (BASE_HEIGHT - drawHeight) / 2;
+
+	ctx.drawImage(img, 0, offsetY, drawWidth, drawHeight);
 }
 
 function createCanvasFromImage(img) {
@@ -419,7 +426,7 @@ async function renderGraphic() {
 		return;
 	}
 
-	const wordmarkLeft = 380;
+	const wordmarkLeft = 400;
 	const defaultWordmarkRight = 1125;
 	const wordmarkRight = secondaryGraphicImage
 		? Math.min(defaultWordmarkRight, secondaryLayout.drawX - 10)

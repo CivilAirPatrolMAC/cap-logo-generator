@@ -471,7 +471,7 @@ function getVisibleImageBounds(img) {
 	};
 }
 
-function getSecondaryLayout(img, blockTop, blockBottom) {
+function getSecondaryLayout(img, logoTop, logoBottom) {
 	if (!img) {
 		return {
 			sourceX: 0,
@@ -487,13 +487,8 @@ function getSecondaryLayout(img, blockTop, blockBottom) {
 
 	const visibleBounds = getVisibleImageBounds(img);
 
-	const blockHeight = Math.max(1, blockBottom - blockTop);
-	const maxVisibleHeight = blockHeight * SECONDARY_BLOCK_HEIGHT_RATIO;
-	const maxVisibleWidth = SECONDARY_MAX_WIDTH;
-
-	const heightScale = maxVisibleHeight / visibleBounds.height;
-	const widthScale = maxVisibleWidth / visibleBounds.width;
-	const scale = Math.min(heightScale, widthScale);
+	const logoHeight = Math.max(1, logoBottom - logoTop);
+	const scale = logoHeight / visibleBounds.height;
 
 	const drawWidth = visibleBounds.width * scale;
 	const drawHeight = visibleBounds.height * scale;
@@ -504,7 +499,7 @@ function getSecondaryLayout(img, blockTop, blockBottom) {
 		drawWidth -
 		SECONDARY_GRAPHIC_OFFSET_LEFT;
 
-	const drawY = blockTop + (blockHeight - drawHeight) / 2;
+	const drawY = logoTop;
 
 	return {
 		sourceX: visibleBounds.left,
@@ -538,12 +533,16 @@ async function renderGraphic() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	canvas.classList.toggle('white-preview', isWhiteVersion);
 
+	let baseLogoLayout;
 	try {
-		await drawBaseLogo(logoFile);
+		baseLogoLayout = await drawBaseLogo(logoFile);
 	} catch (error) {
 		console.error('Could not load base logo:', error);
 		return;
 	}
+
+	const logoTop = baseLogoLayout.offsetY;
+	const logoBottom = baseLogoLayout.offsetY + baseLogoLayout.drawHeight;
 
 	const tracking = text.length > 20 ? 1 : 3;
 	const defaultWordmarkWidth = DEFAULT_WORDMARK_RIGHT - WORDMARK_LEFT;
@@ -561,15 +560,11 @@ async function renderGraphic() {
 	});
 
 	let baselineY = baselineAnchorY + fontSize;
-	let subordinateBounds = getTextVerticalBounds(text, fontSize, baselineY);
-
-	let blockTop = PRIMARY_BLOCK_TOP;
-	let blockBottom = Math.max(PRIMARY_BLOCK_BOTTOM, subordinateBounds.bottom);
 
 	let secondaryLayout = getSecondaryLayout(
 		secondaryGraphicImage,
-		blockTop,
-		blockBottom
+		logoTop,
+		logoBottom
 	);
 
 	const wordmarkRight = secondaryGraphicImage
@@ -589,15 +584,11 @@ async function renderGraphic() {
 	});
 
 	baselineY = baselineAnchorY + fontSize;
-	subordinateBounds = getTextVerticalBounds(text, fontSize, baselineY);
-
-	blockTop = PRIMARY_BLOCK_TOP;
-	blockBottom = Math.max(PRIMARY_BLOCK_BOTTOM, subordinateBounds.bottom);
 
 	secondaryLayout = getSecondaryLayout(
 		secondaryGraphicImage,
-		blockTop,
-		blockBottom
+		logoTop,
+		logoBottom
 	);
 
 	const textColor = isWhiteVersion ? '#FFFFFF' : '#001871';

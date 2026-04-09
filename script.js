@@ -25,9 +25,10 @@ let capFont;
 
 let emblemDropdown = null;
 let ncsaDropdown = null;
+let directorateDropdown = null;
 
 let secondaryGraphicImage = null;
-let secondaryGraphicSource = null; // 'upload' | 'dropdown' | 'ncsa' | null
+let secondaryGraphicSource = null; // 'upload' | 'dropdown' | 'ncsa' | 'directorate' | null
 let secondaryGraphicOriginalUpload = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -45,9 +46,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const emblemSelect = document.getElementById('emblemSelect');
   const ncsaSelect = document.getElementById('ncsaSelect');
+  const directorateSelect = document.getElementById('directorateSelect');
 
   populateEmblemSelect();
   populateNcsaSelect();
+  populateDirectorateSelect();
   initializeSearchableDropdowns();
   updateCharacterCounter();
 
@@ -67,6 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   emblemSelect?.addEventListener('change', handleEmblemSelection);
   ncsaSelect?.addEventListener('change', handleNcsaSelection);
+  directorateSelect?.addEventListener('change', handleDirectorateSelection);
 });
 
 function populateEmblemSelect() {
@@ -102,7 +106,7 @@ function populateEmblemSelect() {
 
   for (const item of emblemOptions) {
     if (!item?.value || !item?.label || !item?.type) continue;
-    if (item.type === 'NCSA') continue;
+    if (item.type === 'NCSA' || item.type === 'directorate') continue;
     if (!groups[item.type]) continue;
 
     const option = document.createElement('option');
@@ -146,6 +150,33 @@ function populateNcsaSelect() {
   }
 }
 
+function populateDirectorateSelect() {
+  const directorateSelect = document.getElementById('directorateSelect');
+  if (!directorateSelect) return;
+
+  if (directorateDropdown) {
+    directorateDropdown.destroy();
+    directorateDropdown = null;
+  }
+
+  directorateSelect.innerHTML = '';
+
+  const noneOption = document.createElement('option');
+  noneOption.value = '';
+  noneOption.textContent = 'None';
+  directorateSelect.appendChild(noneOption);
+
+  for (const item of emblemOptions) {
+    if (!item?.value || !item?.label || item.type !== 'directorate') continue;
+
+    const option = document.createElement('option');
+    option.value = item.value;
+    option.textContent = item.available ? item.label : `${item.label} (unavailable)`;
+    option.disabled = !item.available;
+    directorateSelect.appendChild(option);
+  }
+}
+
 function initializeSearchableDropdowns() {
   if (typeof TomSelect === 'undefined') {
     console.warn('TomSelect is not loaded.');
@@ -154,6 +185,7 @@ function initializeSearchableDropdowns() {
 
   const emblemSelect = document.getElementById('emblemSelect');
   const ncsaSelect = document.getElementById('ncsaSelect');
+  const directorateSelect = document.getElementById('directorateSelect');
 
   if (emblemSelect) {
     emblemDropdown = new TomSelect(emblemSelect, {
@@ -172,6 +204,16 @@ function initializeSearchableDropdowns() {
       allowEmptyOption: true,
       placeholder: 'Search NCSAs...',
       maxOptions: 200,
+      searchField: ['text']
+    });
+  }
+
+  if (directorateSelect) {
+    directorateDropdown = new TomSelect(directorateSelect, {
+      create: false,
+      allowEmptyOption: true,
+      placeholder: 'Search directorates...',
+      maxOptions: 100,
       searchField: ['text']
     });
   }
@@ -318,7 +360,7 @@ function removeNearWhiteBackground(img) {
     }
   }
 
-  tempCtx.putImageData(imageData, 0, 0);
+  tempCtx.putImageData(imageData, tempCanvas.width > 0 ? 0 : 0, 0);
   return tempCanvas;
 }
 
@@ -377,6 +419,13 @@ function clearSecondaryGraphic() {
     if (ncsaSelect) ncsaSelect.value = '';
   }
 
+  if (directorateDropdown) {
+    directorateDropdown.clear(true);
+  } else {
+    const directorateSelect = document.getElementById('directorateSelect');
+    if (directorateSelect) directorateSelect.value = '';
+  }
+
   renderGraphic();
 }
 
@@ -405,6 +454,13 @@ function handleSecondaryGraphicUpload(event) {
         if (ncsaSelect) ncsaSelect.value = '';
       }
 
+      if (directorateDropdown) {
+        directorateDropdown.clear(true);
+      } else {
+        const directorateSelect = document.getElementById('directorateSelect');
+        if (directorateSelect) directorateSelect.value = '';
+      }
+
       await processUploadedSecondaryGraphic();
     };
     img.src = e.target.result;
@@ -422,6 +478,13 @@ async function handleEmblemSelection(event) {
     } else {
       const ncsaSelect = document.getElementById('ncsaSelect');
       if (ncsaSelect) ncsaSelect.value = '';
+    }
+
+    if (directorateDropdown) {
+      directorateDropdown.clear(true);
+    } else {
+      const directorateSelect = document.getElementById('directorateSelect');
+      if (directorateSelect) directorateSelect.value = '';
     }
   }
 
@@ -460,6 +523,13 @@ async function handleNcsaSelection(event) {
       const emblemSelect = document.getElementById('emblemSelect');
       if (emblemSelect) emblemSelect.value = '';
     }
+
+    if (directorateDropdown) {
+      directorateDropdown.clear(true);
+    } else {
+      const directorateSelect = document.getElementById('directorateSelect');
+      if (directorateSelect) directorateSelect.value = '';
+    }
   }
 
   if (!selectedValue) {
@@ -484,6 +554,50 @@ async function handleNcsaSelection(event) {
     await renderGraphic();
   } catch (error) {
     console.error('Could not load NCSA emblem:', error);
+  }
+}
+
+async function handleDirectorateSelection(event) {
+  const selectedValue = event.target.value;
+
+  if (selectedValue) {
+    if (emblemDropdown) {
+      emblemDropdown.clear(true);
+    } else {
+      const emblemSelect = document.getElementById('emblemSelect');
+      if (emblemSelect) emblemSelect.value = '';
+    }
+
+    if (ncsaDropdown) {
+      ncsaDropdown.clear(true);
+    } else {
+      const ncsaSelect = document.getElementById('ncsaSelect');
+      if (ncsaSelect) ncsaSelect.value = '';
+    }
+  }
+
+  if (!selectedValue) {
+    secondaryGraphicImage = null;
+    secondaryGraphicSource = null;
+    secondaryGraphicOriginalUpload = null;
+    await renderGraphic();
+    return;
+  }
+
+  const selectedItem = emblemOptions.find((item) => item.value === selectedValue);
+  if (!selectedItem?.available || !selectedItem.path) return;
+
+  try {
+    secondaryGraphicImage = await loadImage(selectedItem.path);
+    secondaryGraphicSource = 'directorate';
+    secondaryGraphicOriginalUpload = null;
+
+    const secondaryGraphicInput = document.getElementById('secondaryGraphic');
+    if (secondaryGraphicInput) secondaryGraphicInput.value = '';
+
+    await renderGraphic();
+  } catch (error) {
+    console.error('Could not load directorate emblem:', error);
   }
 }
 

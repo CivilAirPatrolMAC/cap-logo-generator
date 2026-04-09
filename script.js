@@ -1,29 +1,19 @@
 import { emblemOptions } from './emblemoptions.js';
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfNay4q7owABhnnHXXM5pYXgaUCRaJVi1w358tTpAvu-gD7fvo_bHwPL5GLGsO8n8L6w/exec';
-const GOOGLE_SCRIPT_SECRET = 'romanvitanza';
+const BASE_WIDTH = 2000;
+const BASE_HEIGHT = 415;
+const SECONDARY_PADDING_RIGHT = 10;
+const SECONDARY_GRAPHIC_OFFSET_LEFT = 350;
 
 let canvas;
 let ctx;
 let capFont;
 
 let secondaryGraphicImage = null;
-let secondaryGraphicSource = null; // 'upload' or 'dropdown' or null
+let secondaryGraphicSource = null; // 'upload' | 'dropdown' | null
 let secondaryGraphicOriginalUpload = null;
 
-const BASE_WIDTH = 2000;
-const BASE_HEIGHT = 415;
-const SECONDARY_PADDING_RIGHT = 10;
-const SECONDARY_GRAPHIC_OFFSET_LEFT = 350;
-
-let baseLogoLayout = {
-	drawX: 0,
-	drawY: 0,
-	drawWidth: BASE_WIDTH,
-	drawHeight: BASE_HEIGHT
-};
-
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 	canvas = document.getElementById('canvas');
 	ctx = canvas.getContext('2d');
 
@@ -33,31 +23,27 @@ document.addEventListener('DOMContentLoaded', () => {
 	const clearButton = document.getElementById('clearSecondaryGraphic');
 	const emblemSelect = document.getElementById('emblemSelect');
 	const transparencyToggle = document.getElementById('secondaryGraphicTransparency');
-	const romanCoolToggle = document.getElementById('romanCoolToggle');
 	const downloadButton = document.getElementById('download');
 
 	populateEmblemSelect();
 
-	loadFont()
-		.then(() => {
-			renderGraphic();
-		})
-		.catch((error) => {
-			console.error('Could not load font:', error);
-			renderGraphic();
-		});
+	try {
+		await loadFont();
+		await renderGraphic();
+	} catch (error) {
+		console.error('Initialization failed:', error);
+	}
 
-	if (subordinateTextInput) subordinateTextInput.oninput = renderGraphic;
-	if (logoStyleSelect) logoStyleSelect.onchange = renderGraphic;
-	if (secondaryInput) secondaryInput.onchange = handleSecondaryGraphicUpload;
-	if (clearButton) clearButton.onclick = clearSecondaryGraphic;
-	if (emblemSelect) emblemSelect.onchange = handleEmblemSelection;
-	if (downloadButton) downloadButton.onclick = download;
-	if (transparencyToggle) transparencyToggle.onchange = handleTransparencyToggleChange;
-	if (romanCoolToggle) romanCoolToggle.onclick = handleRomanCoolToggle;
+	subordinateTextInput?.addEventListener('input', renderGraphic);
+	logoStyleSelect?.addEventListener('change', renderGraphic);
+	secondaryInput?.addEventListener('change', handleSecondaryGraphicUpload);
+	clearButton?.addEventListener('click', clearSecondaryGraphic);
+	emblemSelect?.addEventListener('change', handleEmblemSelection);
+	downloadButton?.addEventListener('click', downloadGraphic);
+	transparencyToggle?.addEventListener('change', handleTransparencyToggleChange);
 });
 
-const populateEmblemSelect = () => {
+function populateEmblemSelect() {
 	const emblemSelect = document.getElementById('emblemSelect');
 	if (!emblemSelect) return;
 
@@ -74,73 +60,49 @@ const populateEmblemSelect = () => {
 	const stateGroup = document.createElement('optgroup');
 	stateGroup.label = 'States';
 
-	emblemOptions.forEach((item) => {
+	for (const item of emblemOptions) {
 		const option = document.createElement('option');
 		option.value = item.value;
-		option.textContent = item.label;
+		option.textContent = item.available ? item.label : `${item.label} (unavailable)`;
 		option.disabled = !item.available;
-
-		if (!item.available) {
-			option.textContent += ' (unavailable)';
-		}
 
 		if (item.type === 'Region') {
 			regionGroup.appendChild(option);
 		} else {
 			stateGroup.appendChild(option);
 		}
-	});
+	}
 
 	emblemSelect.appendChild(regionGroup);
 	emblemSelect.appendChild(stateGroup);
-};
+}
 
-const loadFont = async () => {
+async function loadFont() {
 	if (capFont) return;
 
 	const fontSource = new FontFace('Rajdhani', 'url(font.woff2)');
 	capFont = await fontSource.load();
 	document.fonts.add(capFont);
-};
+}
 
-const drawSource = (imagePath) => {
+function loadImage(imagePath) {
 	return new Promise((resolve, reject) => {
 		const img = new Image();
-
-		img.onload = () => {
-			const scale = BASE_HEIGHT / img.height;
-			const drawWidth = img.width * scale;
-			const drawHeight = BASE_HEIGHT;
-			const drawX = 0;
-			const drawY = 0;
-
-			baseLogoLayout = {
-				drawX,
-				drawY,
-				drawWidth,
-				drawHeight
-			};
-
-			ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-			resolve(baseLogoLayout);
-		};
-
-		img.onerror = reject;
-		img.src = imagePath;
-	});
-};
-
-const loadImage = (imagePath) => {
-	return new Promise((resolve, reject) => {
-		const img = new Image();
-
 		img.onload = () => resolve(img);
 		img.onerror = reject;
 		img.src = imagePath;
 	});
-};
+}
 
-const createCanvasFromImage = (img) => {
+async function drawBaseLogo(imagePath) {
+	const img = await loadImage(imagePath);
+	const scale = BASE_HEIGHT / img.height;
+	const drawWidth = img.width * scale;
+
+	ctx.drawImage(img, 0, 0, drawWidth, BASE_HEIGHT);
+}
+
+function createCanvasFromImage(img) {
 	const tempCanvas = document.createElement('canvas');
 	const tempCtx = tempCanvas.getContext('2d');
 
@@ -149,9 +111,9 @@ const createCanvasFromImage = (img) => {
 	tempCtx.drawImage(img, 0, 0);
 
 	return { tempCanvas, tempCtx };
-};
+}
 
-const removeNearWhiteBackground = (img) => {
+function removeNearWhiteBackground(img) {
 	const { tempCanvas, tempCtx } = createCanvasFromImage(img);
 	const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
 	const data = imageData.data;
@@ -162,54 +124,49 @@ const removeNearWhiteBackground = (img) => {
 		const b = data[i + 2];
 		const a = data[i + 3];
 
-		if (a === 0) continue;
-
-		if (r > 240 && g > 240 && b > 240) {
+		if (a !== 0 && r > 240 && g > 240 && b > 240) {
 			data[i + 3] = 0;
 		}
 	}
 
 	tempCtx.putImageData(imageData, 0, 0);
 	return tempCanvas;
-};
+}
 
-const canvasToImage = (sourceCanvas) => {
+function canvasToImage(sourceCanvas) {
 	return new Promise((resolve) => {
 		const img = new Image();
 		img.onload = () => resolve(img);
 		img.src = sourceCanvas.toDataURL('image/png');
 	});
-};
+}
 
-const processUploadedSecondaryGraphic = async () => {
+async function processUploadedSecondaryGraphic() {
 	if (!secondaryGraphicOriginalUpload) {
 		secondaryGraphicImage = null;
-		renderGraphic();
+		await renderGraphic();
 		return;
 	}
 
 	const transparencyToggle = document.getElementById('secondaryGraphicTransparency');
-	const transparencyEnabled = transparencyToggle ? transparencyToggle.checked : false;
+	const transparencyEnabled = Boolean(transparencyToggle?.checked);
 
-	if (transparencyEnabled) {
-		const transparentCanvas = removeNearWhiteBackground(secondaryGraphicOriginalUpload);
-		secondaryGraphicImage = await canvasToImage(transparentCanvas);
-	} else {
-		secondaryGraphicImage = secondaryGraphicOriginalUpload;
-	}
+	secondaryGraphicImage = transparencyEnabled
+		? await canvasToImage(removeNearWhiteBackground(secondaryGraphicOriginalUpload))
+		: secondaryGraphicOriginalUpload;
 
-	renderGraphic();
-};
+	await renderGraphic();
+}
 
-const handleTransparencyToggleChange = async () => {
+async function handleTransparencyToggleChange() {
 	if (secondaryGraphicSource !== 'upload' || !secondaryGraphicOriginalUpload) {
 		return;
 	}
 
 	await processUploadedSecondaryGraphic();
-};
+}
 
-const clearSecondaryGraphic = () => {
+function clearSecondaryGraphic() {
 	secondaryGraphicImage = null;
 	secondaryGraphicSource = null;
 	secondaryGraphicOriginalUpload = null;
@@ -221,24 +178,11 @@ const clearSecondaryGraphic = () => {
 	if (emblemSelect) emblemSelect.value = '';
 
 	renderGraphic();
-};
+}
 
-const handleSecondaryGraphicUpload = (event) => {
-	const file = event.target.files[0];
+function handleSecondaryGraphicUpload(event) {
+	const file = event.target.files?.[0];
 	if (!file) return;
-
-	if (!file.type.startsWith('image/')) {
-		console.error('Selected file is not an image.');
-		return;
-	}
-
-	uploadSecondaryGraphicToDrive(file)
-		.then((result) => {
-			console.log('Saved to Drive:', result);
-		})
-		.catch((error) => {
-			console.error('Drive upload failed:', error);
-		});
 
 	const reader = new FileReader();
 
@@ -250,9 +194,7 @@ const handleSecondaryGraphicUpload = (event) => {
 			secondaryGraphicSource = 'upload';
 
 			const emblemSelect = document.getElementById('emblemSelect');
-			if (emblemSelect) {
-				emblemSelect.value = '';
-			}
+			if (emblemSelect) emblemSelect.value = '';
 
 			await processUploadedSecondaryGraphic();
 		};
@@ -261,68 +203,59 @@ const handleSecondaryGraphicUpload = (event) => {
 	};
 
 	reader.readAsDataURL(file);
-};
+}
 
-const handleEmblemSelection = async (event) => {
+async function handleEmblemSelection(event) {
 	const selectedValue = event.target.value;
 
 	if (!selectedValue) {
 		secondaryGraphicImage = null;
 		secondaryGraphicSource = null;
 		secondaryGraphicOriginalUpload = null;
-		renderGraphic();
+		await renderGraphic();
 		return;
 	}
 
 	const selectedItem = emblemOptions.find((item) => item.value === selectedValue);
-
-	if (!selectedItem || !selectedItem.available || !selectedItem.path) {
-		return;
-	}
+	if (!selectedItem?.available || !selectedItem.path) return;
 
 	try {
-		const img = await loadImage(selectedItem.path);
-
-		secondaryGraphicImage = img;
+		secondaryGraphicImage = await loadImage(selectedItem.path);
 		secondaryGraphicSource = 'dropdown';
 		secondaryGraphicOriginalUpload = null;
 
 		const secondaryGraphicInput = document.getElementById('secondaryGraphic');
-		if (secondaryGraphicInput) {
-			secondaryGraphicInput.value = '';
-		}
+		if (secondaryGraphicInput) secondaryGraphicInput.value = '';
 
-		renderGraphic();
+		await renderGraphic();
 	} catch (error) {
 		console.error('Could not load emblem:', error);
 	}
-};
+}
 
-const measureTrackedText = (str, tracking) => {
+function measureTrackedText(text, tracking) {
 	let width = 0;
 
-	for (let i = 0; i < str.length; i++) {
-		width += ctx.measureText(str[i]).width;
-		if (i < str.length - 1) {
-			width += tracking;
-		}
+	for (let i = 0; i < text.length; i++) {
+		width += ctx.measureText(text[i]).width;
+		if (i < text.length - 1) width += tracking;
 	}
 
 	return width;
-};
+}
 
-const drawTrackedText = (str, startX, baselineY, tracking) => {
+function drawTrackedText(text, startX, baselineY, tracking) {
 	let x = startX;
 
-	for (let i = 0; i < str.length; i++) {
-		const char = str[i];
+	for (let i = 0; i < text.length; i++) {
+		const char = text[i];
 		ctx.strokeText(char, x, baselineY);
 		ctx.fillText(char, x, baselineY);
 		x += ctx.measureText(char).width + tracking;
 	}
-};
+}
 
-const getResponsiveFontSize = (text, options) => {
+function getResponsiveFontSize(text, options) {
 	const {
 		fontFamily,
 		fontWeight,
@@ -335,7 +268,7 @@ const getResponsiveFontSize = (text, options) => {
 	} = options;
 
 	const referenceFontSize = 100;
-	ctx.font = fontWeight + ' ' + referenceFontSize + 'px ' + fontFamily;
+	ctx.font = `${fontWeight} ${referenceFontSize}px ${fontFamily}`;
 
 	const referenceWidth = measureTrackedText(text, tracking);
 	if (!referenceWidth) return maxFontSize;
@@ -355,12 +288,11 @@ const getResponsiveFontSize = (text, options) => {
 		minFontSize,
 		Math.min(maxFontSize, widthScaledSize, heightScaledSize)
 	);
-};
+}
 
-const getSecondaryLayout = (img) => {
+function getSecondaryLayout(img) {
 	if (!img) {
 		return {
-			extraWidth: 0,
 			drawX: 0,
 			drawY: 0,
 			drawWidth: 0,
@@ -369,63 +301,37 @@ const getSecondaryLayout = (img) => {
 	}
 
 	const maxHeight = BASE_HEIGHT - 30;
-	const imgWidth = img.width;
-	const imgHeight = img.height;
-
-	const scale = maxHeight / imgHeight;
-	const drawWidth = imgWidth * scale;
-	const drawHeight = imgHeight * scale;
-
+	const scale = maxHeight / img.height;
+	const drawWidth = img.width * scale;
+	const drawHeight = img.height * scale;
 	const drawX = BASE_WIDTH - SECONDARY_PADDING_RIGHT - drawWidth - SECONDARY_GRAPHIC_OFFSET_LEFT;
 	const drawY = (BASE_HEIGHT - drawHeight) / 2;
 
-	return {
-		extraWidth: 0,
-		drawX,
-		drawY,
-		drawWidth,
-		drawHeight
-	};
-};
+	return { drawX, drawY, drawWidth, drawHeight };
+}
 
-const renderGraphic = async () => {
+async function renderGraphic() {
 	if (!ctx || !capFont) return;
 
 	const subordinateTextInput = document.getElementById('subordinateText');
 	const logoStyleSelect = document.getElementById('logoStyle');
 
-	const rawInput = subordinateTextInput ? subordinateTextInput.value : 'Marketing & Communication';
-	const text = (rawInput || 'Marketing & Communication').toUpperCase();
-	const selectedStyle = logoStyleSelect ? logoStyleSelect.value : 'blue';
+	const rawInput = subordinateTextInput?.value || 'Marketing & Communication';
+	const text = rawInput.toUpperCase();
+	const selectedStyle = logoStyleSelect?.value || 'blue';
 
 	const isWhiteVersion = selectedStyle === 'white';
 	const logoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
-
 	const secondaryLayout = getSecondaryLayout(secondaryGraphicImage);
 
-	const canvasWidth = BASE_WIDTH + secondaryLayout.extraWidth;
-	const canvasHeight = BASE_HEIGHT;
+	canvas.width = BASE_WIDTH;
+	canvas.height = BASE_HEIGHT;
 
-	const capBlue = '#001871';
-	const white = '#FFFFFF';
-
-	const fontFamily = 'Rajdhani';
-	const fontWeight = '700';
-	const tracking = text.length > 20 ? 1 : 3;
-
-	canvas.width = canvasWidth;
-	canvas.height = canvasHeight;
-
-	ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-	if (isWhiteVersion) {
-		canvas.classList.add('white-preview');
-	} else {
-		canvas.classList.remove('white-preview');
-	}
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	canvas.classList.toggle('white-preview', isWhiteVersion);
 
 	try {
-		await drawSource(logoFile);
+		await drawBaseLogo(logoFile);
 	} catch (error) {
 		console.error('Could not load base logo:', error);
 		return;
@@ -436,13 +342,12 @@ const renderGraphic = async () => {
 	const wordmarkRight = secondaryGraphicImage
 		? Math.min(defaultWordmarkRight, secondaryLayout.drawX - 10)
 		: defaultWordmarkRight;
-
 	const wordmarkWidth = Math.max(100, wordmarkRight - wordmarkLeft);
 
 	const fontSize = getResponsiveFontSize(text, {
-		fontFamily,
-		fontWeight,
-		tracking,
+		fontFamily: 'Rajdhani',
+		fontWeight: '700',
+		tracking: text.length > 20 ? 1 : 3,
 		availableWidth: wordmarkWidth,
 		targetFillRatio: 1,
 		maxFontSize: 130,
@@ -451,14 +356,15 @@ const renderGraphic = async () => {
 	});
 
 	const baselineY = 220 + fontSize;
-	const textColor = isWhiteVersion ? white : capBlue;
+	const textColor = isWhiteVersion ? '#FFFFFF' : '#001871';
+	const tracking = text.length > 20 ? 1 : 3;
 
 	ctx.fillStyle = textColor;
 	ctx.strokeStyle = textColor;
 	ctx.lineWidth = 1.2;
 	ctx.lineJoin = 'round';
 	ctx.miterLimit = 2;
-	ctx.font = '700 ' + fontSize + 'px Rajdhani';
+	ctx.font = `700 ${fontSize}px Rajdhani`;
 
 	drawTrackedText(text, wordmarkLeft, baselineY, tracking);
 
@@ -471,120 +377,11 @@ const renderGraphic = async () => {
 			secondaryLayout.drawHeight
 		);
 	}
-};
+}
 
-const handleRomanCoolToggle = () => {
-	const button = document.getElementById('romanCoolToggle');
-	if (!button) return;
-
-	const isActive = button.classList.toggle('active');
-	button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-
-	if (isActive) {
-		const width = button.offsetWidth + 'px';
-		button.style.width = width;
-		button.textContent = 'Your compliance has been recorded';
-
-		fireConfettiBurst();
-		sendRomanFanMail?.();
-	}
-};
-
-const sendRomanFanMail = async () => {
-	try {
-		await fetch('https://formspree.io/f/mzdkwebr', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				message: 'Someone confirmed Roman Vitanza is the coolest PAO.',
-				timestamp: new Date().toISOString(),
-				userAgent: navigator.userAgent
-			})
-		});
-	} catch (error) {
-		console.error('Email send failed:', error);
-	}
-};
-
-const fireConfettiBurst = () => {
-	if (typeof confetti !== 'function') {
-		console.error('Confetti library did not load.');
-		return;
-	}
-
-	confetti({
-		particleCount: 140,
-		spread: 80,
-		origin: { y: 0.6 }
-	});
-
-	setTimeout(() => {
-		confetti({
-			particleCount: 90,
-			angle: 60,
-			spread: 60,
-			origin: { x: 0, y: 0.7 }
-		});
-
-		confetti({
-			particleCount: 90,
-			angle: 120,
-			spread: 60,
-			origin: { x: 1, y: 0.7 }
-		});
-	}, 180);
-};
-
-const download = () => {
-	const a = document.createElement('a');
-	a.download = 'Graphic.png';
-	a.href = canvas.toDataURL('image/png');
-	a.click();
-};
-
-const uploadSecondaryGraphicToDrive = async (file) => {
-	const base64 = await fileToBase64(file);
-
-	const subordinateTextInput = document.getElementById('subordinateText');
-	const subordinateText = subordinateTextInput ? subordinateTextInput.value : '';
-
-	const response = await fetch(GOOGLE_SCRIPT_URL, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'text/plain;charset=utf-8'
-		},
-		body: JSON.stringify({
-			secret: GOOGLE_SCRIPT_SECRET,
-			fileName: file.name,
-			mimeType: file.type,
-			base64,
-			subordinateText,
-			source: 'cap-logo-generator'
-		})
-	});
-
-	const result = await response.json();
-
-	if (!result.success) {
-		throw new Error(result.error || 'Upload failed.');
-	}
-
-	return result;
-};
-
-const fileToBase64 = (file) => {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader();
-
-		reader.onload = () => {
-			const result = reader.result || '';
-			const base64 = String(result).split(',')[1];
-			resolve(base64);
-		};
-
-		reader.onerror = reject;
-		reader.readAsDataURL(file);
-	});
-};
+function downloadGraphic() {
+	const link = document.createElement('a');
+	link.download = 'Graphic.png';
+	link.href = canvas.toDataURL('image/png');
+	link.click();
+}

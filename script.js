@@ -163,7 +163,18 @@ const drawSource = (imagePath) => {
 		const img = new Image();
 
 		img.onload = () => {
-			ctx.drawImage(img, 0, 0, BASE_WIDTH, BASE_HEIGHT);
+			const scale = Math.min(
+				BASE_WIDTH / img.width,
+				BASE_HEIGHT / img.height
+			);
+
+			const drawWidth = img.width * scale;
+			const drawHeight = img.height * scale;
+
+			const offsetX = (BASE_WIDTH - drawWidth) / 2;
+			const offsetY = (BASE_HEIGHT - drawHeight) / 2;
+
+			ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 			resolve();
 		};
 

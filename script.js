@@ -381,9 +381,63 @@ function getTextVerticalBounds(text, fontSize, baselineY) {
 	};
 }
 
+function getVisibleImageBounds(img) {
+	const { tempCanvas, tempCtx } = createCanvasFromImage(img);
+	const { width, height } = tempCanvas;
+	const imageData = tempCtx.getImageData(0, 0, width, height);
+	const data = imageData.data;
+
+	let top = height;
+	let bottom = -1;
+	let left = width;
+	let right = -1;
+
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			const i = (y * width + x) * 4;
+			const r = data[i];
+			const g = data[i + 1];
+			const b = data[i + 2];
+			const a = data[i + 3];
+
+			const isVisible = a > 10 && !(r > 250 && g > 250 && b > 250);
+			if (!isVisible) continue;
+
+			if (x < left) left = x;
+			if (x > right) right = x;
+			if (y < top) top = y;
+			if (y > bottom) bottom = y;
+		}
+	}
+
+	if (right === -1 || bottom === -1) {
+		return {
+			left: 0,
+			top: 0,
+			right: width - 1,
+			bottom: height - 1,
+			width,
+			height
+		};
+	}
+
+	return {
+		left,
+		top,
+		right,
+		bottom,
+		width: right - left + 1,
+		height: bottom - top + 1
+	};
+}
+
 function getSecondaryLayout(img, wordmarkTop, wordmarkBottom) {
 	if (!img) {
 		return {
+			sourceX: 0,
+			sourceY: 0,
+			sourceWidth: 0,
+			sourceHeight: 0,
 			drawX: 0,
 			drawY: 0,
 			drawWidth: 0,
@@ -391,18 +445,29 @@ function getSecondaryLayout(img, wordmarkTop, wordmarkBottom) {
 		};
 	}
 
-	const maxHeight = Math.max(1, wordmarkBottom - wordmarkTop);
-	const scale = Math.min(1, maxHeight / img.height);
-	const drawWidth = img.width * scale;
-	const drawHeight = img.height * scale;
+	const visibleBounds = getVisibleImageBounds(img);
+	const maxVisibleHeight = Math.max(1, wordmarkBottom - wordmarkTop);
+	const scale = maxVisibleHeight / visibleBounds.height;
+
+	const drawWidth = visibleBounds.width * scale;
+	const drawHeight = visibleBounds.height * scale;
 	const drawX =
 		BASE_WIDTH -
 		SECONDARY_PADDING_RIGHT -
 		drawWidth -
 		SECONDARY_GRAPHIC_OFFSET_LEFT;
-	const drawY = wordmarkTop + (maxHeight - drawHeight) / 2;
+	const drawY = wordmarkTop + (maxVisibleHeight - drawHeight) / 2;
 
-	return { drawX, drawY, drawWidth, drawHeight };
+	return {
+		sourceX: visibleBounds.left,
+		sourceY: visibleBounds.top,
+		sourceWidth: visibleBounds.width,
+		sourceHeight: visibleBounds.height,
+		drawX,
+		drawY,
+		drawWidth,
+		drawHeight
+	};
 }
 
 async function renderGraphic() {
@@ -436,7 +501,7 @@ async function renderGraphic() {
 	const defaultWordmarkRight = 1125;
 	const defaultWordmarkWidth = defaultWordmarkRight - wordmarkLeft;
 	const tracking = text.length > 20 ? 1 : 3;
-	const baselineY = 220;
+	const baselineAnchorY = 220;
 
 	let fontSize = getResponsiveFontSize(text, {
 		fontFamily: 'Rajdhani',
@@ -449,7 +514,8 @@ async function renderGraphic() {
 		maxTextHeight: 70
 	});
 
-	let wordmarkBounds = getTextVerticalBounds(text, fontSize, baselineY + fontSize);
+	let baselineY = baselineAnchorY + fontSize;
+	let wordmarkBounds = getTextVerticalBounds(text, fontSize, baselineY);
 	let secondaryLayout = getSecondaryLayout(
 		secondaryGraphicImage,
 		wordmarkBounds.top,
@@ -472,8 +538,8 @@ async function renderGraphic() {
 		maxTextHeight: 70
 	});
 
-	const finalBaselineY = baselineY + fontSize;
-	wordmarkBounds = getTextVerticalBounds(text, fontSize, finalBaselineY);
+	baselineY = baselineAnchorY + fontSize;
+	wordmarkBounds = getTextVerticalBounds(text, fontSize, baselineY);
 	secondaryLayout = getSecondaryLayout(
 		secondaryGraphicImage,
 		wordmarkBounds.top,
@@ -489,11 +555,15 @@ async function renderGraphic() {
 	ctx.miterLimit = 2;
 	ctx.font = `700 ${fontSize}px Rajdhani`;
 
-	drawTrackedText(text, wordmarkLeft, finalBaselineY, tracking);
+	drawTrackedText(text, wordmarkLeft, baselineY, tracking);
 
 	if (secondaryGraphicImage) {
 		ctx.drawImage(
 			secondaryGraphicImage,
+			secondaryLayout.sourceX,
+			secondaryLayout.sourceY,
+			secondaryLayout.sourceWidth,
+			secondaryLayout.sourceHeight,
 			secondaryLayout.drawX,
 			secondaryLayout.drawY,
 			secondaryLayout.drawWidth,

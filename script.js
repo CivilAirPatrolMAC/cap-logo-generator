@@ -392,3 +392,26 @@ function downloadGraphic() {
 	link.href = canvas.toDataURL('image/png');
 	link.click();
 }
+
+let emblemDropdown;
+
+function initializeSearchableDropdown() {
+	const select = document.getElementById('emblemSelect');
+	if (!select) return;
+
+	if (emblemDropdown) {
+		emblemDropdown.destroy();
+	}
+
+	emblemDropdown = new TomSelect(select, {
+		create: false,
+		sortField: {
+			field: "text",
+			direction: "asc"
+		},
+		placeholder: "Search emblems...",
+		maxOptions: 500,
+	});
+}
+
+initializeSearchableDropdown();

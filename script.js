@@ -162,6 +162,79 @@ function loadImage(imagePath) {
 	});
 }
 
+function createCanvasFromImage(img) {
+	const tempCanvas = document.createElement('canvas');
+	const tempCtx = tempCanvas.getContext('2d');
+
+	tempCanvas.width = img.width;
+	tempCanvas.height = img.height;
+	tempCtx.drawImage(img, 0, 0);
+
+	return { tempCanvas, tempCtx };
+}
+
+function getVisibleImageBounds(img) {
+	const { tempCanvas, tempCtx } = createCanvasFromImage(img);
+	const { width, height } = tempCanvas;
+	const imageData = tempCtx.getImageData(0, 0, width, height);
+	const data = imageData.data;
+
+	let top = height;
+	let bottom = -1;
+	let left = width;
+	let right = -1;
+
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			const i = (y * width + x) * 4;
+			const r = data[i];
+			const g = data[i + 1];
+			const b = data[i + 2];
+			const a = data[i + 3];
+
+			const isVisible =
+				a > VISIBLE_BOUNDS_ALPHA_THRESHOLD &&
+				!(
+					r > VISIBLE_BOUNDS_WHITE_THRESHOLD &&
+					g > VISIBLE_BOUNDS_WHITE_THRESHOLD &&
+					b > VISIBLE_BOUNDS_WHITE_THRESHOLD
+				);
+
+			if (!isVisible) continue;
+
+			if (x < left) left = x;
+			if (x > right) right = x;
+			if (y < top) top = y;
+			if (y > bottom) bottom = y;
+		}
+	}
+
+	if (right === -1 || bottom === -1) {
+		return {
+			left: 0,
+			top: 0,
+			right: width - 1,
+			bottom: height - 1,
+			width,
+			height
+		};
+	}
+
+	left = Math.max(0, left - VISIBLE_BOUNDS_PADDING);
+	top = Math.max(0, top - VISIBLE_BOUNDS_PADDING);
+	right = Math.min(width - 1, right + VISIBLE_BOUNDS_PADDING);
+	bottom = Math.min(height - 1, bottom + VISIBLE_BOUNDS_PADDING);
+
+	return {
+		left,
+		top,
+		right,
+		bottom,
+		width: right - left + 1,
+		height: bottom - top + 1
+	};
+}
+
 async function getBaseLogoLayout(imagePath) {
 	const img = await loadImage(imagePath);
 
@@ -170,10 +243,16 @@ async function getBaseLogoLayout(imagePath) {
 	const drawHeight = img.height * scale;
 	const offsetY = (BASE_HEIGHT - drawHeight) / 2;
 
+	const visibleBounds = getVisibleImageBounds(img);
+
 	return {
 		drawWidth,
 		drawHeight,
-		offsetY
+		offsetY,
+		visibleTop: offsetY + (visibleBounds.top * scale),
+		visibleBottom: offsetY + ((visibleBounds.bottom + 1) * scale),
+		visibleLeft: visibleBounds.left * scale,
+		visibleRight: (visibleBounds.right + 1) * scale
 	};
 }
 
@@ -184,17 +263,6 @@ async function drawBaseLogo(imagePath) {
 	ctx.drawImage(img, 0, layout.offsetY, layout.drawWidth, layout.drawHeight);
 
 	return layout;
-}
-
-function createCanvasFromImage(img) {
-	const tempCanvas = document.createElement('canvas');
-	const tempCtx = tempCanvas.getContext('2d');
-
-	tempCanvas.width = img.width;
-	tempCanvas.height = img.height;
-	tempCtx.drawImage(img, 0, 0);
-
-	return { tempCanvas, tempCtx };
 }
 
 function removeNearWhiteBackground(img) {
@@ -396,69 +464,7 @@ function getResponsiveFontSize(text, options) {
 	);
 }
 
-function getVisibleImageBounds(img) {
-	const { tempCanvas, tempCtx } = createCanvasFromImage(img);
-	const { width, height } = tempCanvas;
-	const imageData = tempCtx.getImageData(0, 0, width, height);
-	const data = imageData.data;
-
-	let top = height;
-	let bottom = -1;
-	let left = width;
-	let right = -1;
-
-	for (let y = 0; y < height; y++) {
-		for (let x = 0; x < width; x++) {
-			const i = (y * width + x) * 4;
-			const r = data[i];
-			const g = data[i + 1];
-			const b = data[i + 2];
-			const a = data[i + 3];
-
-			const isVisible =
-				a > VISIBLE_BOUNDS_ALPHA_THRESHOLD &&
-				!(
-					r > VISIBLE_BOUNDS_WHITE_THRESHOLD &&
-					g > VISIBLE_BOUNDS_WHITE_THRESHOLD &&
-					b > VISIBLE_BOUNDS_WHITE_THRESHOLD
-				);
-
-			if (!isVisible) continue;
-
-			if (x < left) left = x;
-			if (x > right) right = x;
-			if (y < top) top = y;
-			if (y > bottom) bottom = y;
-		}
-	}
-
-	if (right === -1 || bottom === -1) {
-		return {
-			left: 0,
-			top: 0,
-			right: width - 1,
-			bottom: height - 1,
-			width,
-			height
-		};
-	}
-
-	left = Math.max(0, left - VISIBLE_BOUNDS_PADDING);
-	top = Math.max(0, top - VISIBLE_BOUNDS_PADDING);
-	right = Math.min(width - 1, right + VISIBLE_BOUNDS_PADDING);
-	bottom = Math.min(height - 1, bottom + VISIBLE_BOUNDS_PADDING);
-
-	return {
-		left,
-		top,
-		right,
-		bottom,
-		width: right - left + 1,
-		height: bottom - top + 1
-	};
-}
-
-function getSecondaryLayout(img, logoTop, logoBottom) {
+function getSecondaryLayout(img, referenceTop, referenceBottom) {
 	if (!img) {
 		return {
 			sourceX: 0,
@@ -473,8 +479,8 @@ function getSecondaryLayout(img, logoTop, logoBottom) {
 	}
 
 	const visibleBounds = getVisibleImageBounds(img);
-	const logoHeight = Math.max(1, logoBottom - logoTop);
-	const scale = logoHeight / visibleBounds.height;
+	const referenceHeight = Math.max(1, referenceBottom - referenceTop);
+	const scale = referenceHeight / visibleBounds.height;
 
 	const drawWidth = visibleBounds.width * scale;
 	const drawHeight = visibleBounds.height * scale;
@@ -485,7 +491,7 @@ function getSecondaryLayout(img, logoTop, logoBottom) {
 		drawWidth -
 		SECONDARY_GRAPHIC_OFFSET_LEFT;
 
-	const drawY = logoTop;
+	const drawY = referenceTop;
 
 	return {
 		sourceX: visibleBounds.left,
@@ -529,8 +535,8 @@ async function renderGraphic() {
 		return;
 	}
 
-	const logoTop = referenceLogoLayout.offsetY;
-	const logoBottom = referenceLogoLayout.offsetY + referenceLogoLayout.drawHeight;
+	const referenceTop = referenceLogoLayout.visibleTop;
+	const referenceBottom = referenceLogoLayout.visibleBottom;
 
 	const tracking = text.length > 20 ? 1 : 3;
 	const defaultWordmarkWidth = DEFAULT_WORDMARK_RIGHT - WORDMARK_LEFT;
@@ -551,8 +557,8 @@ async function renderGraphic() {
 
 	let secondaryLayout = getSecondaryLayout(
 		secondaryGraphicImage,
-		logoTop,
-		logoBottom
+		referenceTop,
+		referenceBottom
 	);
 
 	const wordmarkRight = secondaryGraphicImage
@@ -575,8 +581,8 @@ async function renderGraphic() {
 
 	secondaryLayout = getSecondaryLayout(
 		secondaryGraphicImage,
-		logoTop,
-		logoBottom
+		referenceTop,
+		referenceBottom
 	);
 
 	const textColor = isWhiteVersion ? '#FFFFFF' : '#001871';

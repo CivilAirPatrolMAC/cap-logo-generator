@@ -413,22 +413,19 @@ const getSecondaryLayout = (img) => {
 		};
 	}
 
+	const maxHeight = BASE_HEIGHT - 30;
 	const imgWidth = img.width;
 	const imgHeight = img.height;
 
-	const scale = BASE_HEIGHT / imgHeight;
+	const scale = maxHeight / imgHeight;
 	const drawWidth = imgWidth * scale;
-	const drawHeight = BASE_HEIGHT;
+	const drawHeight = imgHeight * scale;
 
-	const extraWidth = Math.ceil(
-		SECONDARY_PADDING_LEFT + drawWidth + SECONDARY_PADDING_RIGHT
-	);
-
-	const drawX = BASE_WIDTH + SECONDARY_PADDING_LEFT;
-	const drawY = 0;
+	const drawX = BASE_WIDTH - SECONDARY_PADDING_RIGHT - drawWidth;
+	const drawY = (BASE_HEIGHT - drawHeight) / 2;
 
 	return {
-		extraWidth,
+		extraWidth: 0,
 		drawX,
 		drawY,
 		drawWidth,
@@ -455,7 +452,6 @@ const renderGraphic = async () => {
 	const canvasHeight = BASE_HEIGHT;
 
 	const baselineY = 300;
-	const safeRightPadding = 10;
 
 	const capBlue = '#001871';
 	const white = '#FFFFFF';
@@ -482,36 +478,37 @@ const renderGraphic = async () => {
 		return;
 	}
 
-	const wordmarkLeft = 560;
-const wordmarkRight = 1860;
-const wordmarkWidth = wordmarkRight - wordmarkLeft;
+	const wordmarkLeft = 380;
+	const defaultWordmarkRight = 1125;
+	const wordmarkRight = secondaryGraphicImage
+		? Math.min(defaultWordmarkRight, secondaryLayout.drawX - 25)
+		: defaultWordmarkRight;
 
-const availableWidth = Math.max(100, wordmarkWidth);
+	const wordmarkWidth = Math.max(100, wordmarkRight - wordmarkLeft);
 
-const fontSize = getResponsiveFontSize(text, {
-	fontFamily,
-	fontWeight,
-	tracking,
-	availableWidth,
-	targetFillRatio: 0.82,
-	maxFontSize: 130,
-	minFontSize: 50,
-	maxTextHeight: 70
-});
+	const fontSize = getResponsiveFontSize(text, {
+		fontFamily,
+		fontWeight,
+		tracking,
+		availableWidth: wordmarkWidth,
+		targetFillRatio: 1,
+		maxFontSize: 130,
+		minFontSize: 50,
+		maxTextHeight: 70
+	});
 
-const textColor = isWhiteVersion ? white : capBlue;
+	const textColor = isWhiteVersion ? white : capBlue;
 
-ctx.fillStyle = textColor;
-ctx.strokeStyle = textColor;
-ctx.lineWidth = 1.2;
-ctx.lineJoin = 'round';
-ctx.miterLimit = 2;
-ctx.font = '700 ' + fontSize + 'px Rajdhani';
+	ctx.fillStyle = textColor;
+	ctx.strokeStyle = textColor;
+	ctx.lineWidth = 1.2;
+	ctx.lineJoin = 'round';
+	ctx.miterLimit = 2;
+	ctx.font = '700 ' + fontSize + 'px Rajdhani';
 
-const textWidth = measureTrackedText(text, tracking);
-const startX = wordmarkLeft -180;
-	
-drawTrackedText(text, startX, baselineY, tracking);
+	const startX = wordmarkLeft;
+
+	drawTrackedText(text, startX, baselineY, tracking);
 
 	if (secondaryGraphicImage) {
 		ctx.drawImage(

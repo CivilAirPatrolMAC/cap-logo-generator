@@ -1,3 +1,5 @@
+import { emblemOptions } from 'emblemOptions.js';
+
 let canvas;
 let ctx;
 let capFont;
@@ -21,71 +23,6 @@ let baseLogoLayout = {
 
 const input = document.getElementById('subordinate');
 
-const emblemOptions = [
-	// Regions
-	{ value: 'rocky-mountain-region', label: 'Rocky Mountain Region', type: 'Region', path: '', available: false },
-	{ value: 'pacific-region', label: 'Pacific Region', type: 'Region', path: '', available: false },
-	{ value: 'north-central-region', label: 'North Central Region', type: 'Region', path: '', available: false },
-	{ value: 'great-lakes-region', label: 'Great Lakes Region', type: 'Region', path: '', available: false },
-	{ value: 'northeast-region', label: 'Northeast Region', type: 'Region', path: '', available: false },
-	{ value: 'mid-atlantic-region', label: 'Mid-Atlantic Region', type: 'Region', path: '', available: false },
-	{ value: 'southeast-region', label: 'Southeast Region', type: 'Region', path: '', available: false },
-	{ value: 'southwest-region', label: 'Southwest Region', type: 'Region', path: 'region/swremblem.png', available: true },
-	{ value: 'overseas', label: 'Overseas', type: 'Region', path: '', available: false },
-
-	// States
-	{ value: 'alabama', label: 'Alabama', type: 'State', path: '', available: false },
-	{ value: 'alaska', label: 'Alaska', type: 'State', path: '', available: false },
-	{ value: 'arizona', label: 'Arizona', type: 'State', path: 'wing/azemblem.png', available: true },
-	{ value: 'arkansas', label: 'Arkansas', type: 'State', path: 'wing/aremblem.png', available: true },
-	{ value: 'california', label: 'California', type: 'State', path: '', available: false },
-	{ value: 'colorado', label: 'Colorado', type: 'State', path: '', available: false },
-	{ value: 'connecticut', label: 'Connecticut', type: 'State', path: '', available: false },
-	{ value: 'delaware', label: 'Delaware', type: 'State', path: '', available: false },
-	{ value: 'florida', label: 'Florida', type: 'State', path: '', available: false },
-	{ value: 'georgia', label: 'Georgia', type: 'State', path: '', available: false },
-	{ value: 'hawaii', label: 'Hawaii', type: 'State', path: '', available: false },
-	{ value: 'idaho', label: 'Idaho', type: 'State', path: '', available: false },
-	{ value: 'illinois', label: 'Illinois', type: 'State', path: '', available: false },
-	{ value: 'indiana', label: 'Indiana', type: 'State', path: '', available: false },
-	{ value: 'iowa', label: 'Iowa', type: 'State', path: '', available: false },
-	{ value: 'kansas', label: 'Kansas', type: 'State', path: '', available: false },
-	{ value: 'kentucky', label: 'Kentucky', type: 'State', path: '', available: false },
-	{ value: 'louisiana', label: 'Louisiana', type: 'State', path: 'wing/laemblem.png', available: true },
-	{ value: 'maine', label: 'Maine', type: 'State', path: '', available: false },
-	{ value: 'maryland', label: 'Maryland', type: 'State', path: '', available: false },
-	{ value: 'massachusetts', label: 'Massachusetts', type: 'State', path: '', available: false },
-	{ value: 'michigan', label: 'Michigan', type: 'State', path: '', available: false },
-	{ value: 'minnesota', label: 'Minnesota', type: 'State', path: '', available: false },
-	{ value: 'mississippi', label: 'Mississippi', type: 'State', path: '', available: false },
-	{ value: 'missouri', label: 'Missouri', type: 'State', path: '', available: false },
-	{ value: 'montana', label: 'Montana', type: 'State', path: '', available: false },
-	{ value: 'nationalcapital', label: 'National Capital', type: 'State', path: '', available: false },
-	{ value: 'nebraska', label: 'Nebraska', type: 'State', path: '', available: false },
-	{ value: 'nevada', label: 'Nevada', type: 'State', path: '', available: false },
-	{ value: 'new-hampshire', label: 'New Hampshire', type: 'State', path: '', available: false },
-	{ value: 'new-jersey', label: 'New Jersey', type: 'State', path: '', available: false },
-	{ value: 'new-mexico', label: 'New Mexico', type: 'State', path: 'wing/nmemblem.png', available: true },
-	{ value: 'new-york', label: 'New York', type: 'State', path: '', available: false },
-	{ value: 'north-carolina', label: 'North Carolina', type: 'State', path: '', available: false },
-	{ value: 'north-dakota', label: 'North Dakota', type: 'State', path: '', available: false },
-	{ value: 'ohio', label: 'Ohio', type: 'State', path: '', available: false },
-	{ value: 'oklahoma', label: 'Oklahoma', type: 'State', path: 'wing/okemblem.png', available: true },
-	{ value: 'oregon', label: 'Oregon', type: 'State', path: '', available: false },
-	{ value: 'pennsylvania', label: 'Pennsylvania', type: 'State', path: '', available: false },
-	{ value: 'rhode-island', label: 'Rhode Island', type: 'State', path: '', available: false },
-	{ value: 'south-carolina', label: 'South Carolina', type: 'State', path: '', available: false },
-	{ value: 'south-dakota', label: 'South Dakota', type: 'State', path: '', available: false },
-	{ value: 'tennessee', label: 'Tennessee', type: 'State', path: '', available: false },
-	{ value: 'texas', label: 'Texas', type: 'State', path: 'wing/txemblem.png', available: true },
-	{ value: 'utah', label: 'Utah', type: 'State', path: '', available: false },
-	{ value: 'vermont', label: 'Vermont', type: 'State', path: '', available: false },
-	{ value: 'virginia', label: 'Virginia', type: 'State', path: '', available: false },
-	{ value: 'washington', label: 'Washington', type: 'State', path: '', available: false },
-	{ value: 'west-virginia', label: 'West Virginia', type: 'State', path: '', available: false },
-	{ value: 'wisconsin', label: 'Wisconsin', type: 'State', path: '', available: false },
-	{ value: 'wyoming', label: 'Wyoming', type: 'State', path: '', available: false }
-];
 
 document.addEventListener('DOMContentLoaded', () => {
 	canvas = document.getElementById('canvas');

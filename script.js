@@ -439,7 +439,7 @@ async function renderGraphic() {
 		fontWeight: '700',
 		tracking,
 		availableWidth: wordmarkWidth,
-		targetFillRatio: 1,
+		targetFillRatio: 0.8,
 		maxFontSize: 130,
 		minFontSize: 12,
 		maxTextHeight: 70

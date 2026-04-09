@@ -454,7 +454,7 @@ const renderGraphic = async () => {
 	const canvasWidth = BASE_WIDTH + secondaryLayout.extraWidth;
 	const canvasHeight = BASE_HEIGHT;
 
-	const baselineY = 355;
+	const baselineY = 365;
 	const safeRightPadding = 10;
 
 	const capBlue = '#001871';
@@ -482,32 +482,36 @@ const renderGraphic = async () => {
 		return;
 	}
 
-	const availableWidth = Math.max(100, baseLogoLayout.drawWidth - safeRightPadding * 2);
+	const wordmarkLeft = 560;
+const wordmarkRight = 1860;
+const wordmarkWidth = wordmarkRight - wordmarkLeft;
 
-	const fontSize = getResponsiveFontSize(text, {
-		fontFamily,
-		fontWeight,
-		tracking,
-		availableWidth,
-		targetFillRatio: 0.9,
-		maxFontSize: 130,
-		minFontSize: 50,
-		maxTextHeight: 70
-	});
+const availableWidth = Math.max(100, wordmarkWidth);
 
-	const textColor = isWhiteVersion ? white : capBlue;
+const fontSize = getResponsiveFontSize(text, {
+	fontFamily,
+	fontWeight,
+	tracking,
+	availableWidth,
+	targetFillRatio: 0.82,
+	maxFontSize: 130,
+	minFontSize: 50,
+	maxTextHeight: 70
+});
 
-	ctx.fillStyle = textColor;
-	ctx.strokeStyle = textColor;
-	ctx.lineWidth = 1.2;
-	ctx.lineJoin = 'round';
-	ctx.miterLimit = 2;
-	ctx.font = '700 ' + fontSize + 'px Rajdhani';
+const textColor = isWhiteVersion ? white : capBlue;
 
-	const textWidth = measureTrackedText(text, tracking);
-	const startX = baseLogoLayout.drawX + (baseLogoLayout.drawWidth - textWidth) / 2;
+ctx.fillStyle = textColor;
+ctx.strokeStyle = textColor;
+ctx.lineWidth = 1.2;
+ctx.lineJoin = 'round';
+ctx.miterLimit = 2;
+ctx.font = '700 ' + fontSize + 'px Rajdhani';
 
-	drawTrackedText(text, startX, baselineY, tracking);
+const textWidth = measureTrackedText(text, tracking);
+const startX = wordmarkLeft + (wordmarkWidth - textWidth) / 2;
+
+drawTrackedText(text, startX, baselineY, tracking);
 
 	if (secondaryGraphicImage) {
 		ctx.drawImage(

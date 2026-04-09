@@ -54,11 +54,17 @@ function populateEmblemSelect() {
 	noneOption.textContent = 'None';
 	emblemSelect.appendChild(noneOption);
 
-	const regionGroup = document.createElement('optgroup');
-	regionGroup.label = 'Regions';
+	const groups = {
+		Region: document.createElement('optgroup'),
+		Wing: document.createElement('optgroup'),
+		Group: document.createElement('optgroup'),
+		Squadron: document.createElement('optgroup')
+	};
 
-	const stateGroup = document.createElement('optgroup');
-	stateGroup.label = 'States';
+	groups.Region.label = 'Regions';
+	groups.Wing.label = 'Wings';
+	groups.Group.label = 'Groups';
+	groups.Squadron.label = 'Squadrons';
 
 	for (const item of emblemOptions) {
 		const option = document.createElement('option');
@@ -66,15 +72,16 @@ function populateEmblemSelect() {
 		option.textContent = item.available ? item.label : `${item.label} (unavailable)`;
 		option.disabled = !item.available;
 
-		if (item.type === 'Region') {
-			regionGroup.appendChild(option);
-		} else {
-			stateGroup.appendChild(option);
+		if (groups[item.type]) {
+			groups[item.type].appendChild(option);
 		}
 	}
 
-	emblemSelect.appendChild(regionGroup);
-	emblemSelect.appendChild(stateGroup);
+	for (const key of ['Region', 'Wing', 'Group', 'Squadron']) {
+		if (groups[key].children.length > 0) {
+			emblemSelect.appendChild(groups[key]);
+		}
+	}
 }
 
 async function loadFont() {

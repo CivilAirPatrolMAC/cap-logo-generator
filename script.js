@@ -1,4 +1,4 @@
-import { emblemOptions } from 'emblemOptions.js';
+import { emblemOptions } from './emblemoptions.js';
 
 let canvas;
 let ctx;

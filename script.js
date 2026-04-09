@@ -66,6 +66,7 @@ function populateEmblemSelect() {
 	const groupOrder = ['Region', 'Wing', 'Group', 'Squadron'];
 	const groupLabels = {
 		Region: 'Regions',
+		NCSA: 'NCSA',
 		Wing: 'Wings',
 		Group: 'Groups',
 		Squadron: 'Squadrons'

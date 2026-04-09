@@ -72,17 +72,17 @@ export const emblemOptions = [
 	{ value: 'wyoming', label: 'Wyoming', type: 'Wing', path: '', available: false },
 
 	// Groups
-	{ value: 'TXG1', label: 'TXWG Group 1', type: 'Group', path: '', available: false },
-	{ value: 'TXG2', label: 'TXWG Group 2', type: 'Group', path: '', available: false },
-	{ value: 'TXG3', label: 'TXWG Group 3', type: 'Group', path: '', available: false },
-	{ value: 'TXG4', label: 'TXWG Group 4', type: 'Group', path: '', available: false },
-	{ value: 'TXG5', label: 'TXWG Group 5', type: 'Group', path: '', available: false },
-	{ value: 'TXG6', label: 'TXWG Group 6', type: 'Group', path: '', available: false },
-	{ value: 'TXG7', label: 'TXWG Group 7', type: 'Group', path: '', available: false },
+	//{ value: 'TXG1', label: 'TXWG Group 1', type: 'Group', path: '', available: false },
+	//{ value: 'TXG2', label: 'TXWG Group 2', type: 'Group', path: '', available: false },
+	//{ value: 'TXG3', label: 'TXWG Group 3', type: 'Group', path: '', available: false },
+	//{ value: 'TXG4', label: 'TXWG Group 4', type: 'Group', path: '', available: false },
+	//{ value: 'TXG5', label: 'TXWG Group 5', type: 'Group', path: '', available: false },
+	//{ value: 'TXG6', label: 'TXWG Group 6', type: 'Group', path: '', available: false },
+	//{ value: 'TXG7', label: 'TXWG Group 7', type: 'Group', path: '', available: false },
 
 	//Squadrons
 	{ value: 'TX388', label: 'SWR-TX-388', type: 'Squadron', path: 'squadron/tx388emblem.png', available: true },
-	{ value: 'TX154', label: 'SWR-TX-154', type: 'Squadron', path: 'squadron/tx154emblem.png', available: false }
+	{ value: 'TX154', label: 'SWR-TX-154', type: 'Squadron', path: 'squadron/tx154emblem.png', available: true }
 
 
 ];

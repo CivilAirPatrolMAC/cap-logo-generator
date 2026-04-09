@@ -492,7 +492,7 @@ const renderGraphic = async () => {
 		availableWidth: wordmarkWidth,
 		targetFillRatio: 1,
 		maxFontSize: 130,
-		minFontSize: 28,
+		minFontSize: 20,
 		maxTextHeight: 70
 	});
 

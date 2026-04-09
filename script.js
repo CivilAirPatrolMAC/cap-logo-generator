@@ -108,10 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (romanCoolToggle) romanCoolToggle.onclick = handleRomanCoolToggle;
 });
 
-
-
-
-
 const populateEmblemSelect = () => {
 	const emblemSelect = document.getElementById('emblemSelect');
 	if (!emblemSelect) return;
@@ -163,18 +159,11 @@ const drawSource = (imagePath) => {
 		const img = new Image();
 
 		img.onload = () => {
-			const scale = Math.min(
-				BASE_WIDTH / img.width,
-				BASE_HEIGHT / img.height
-			);
-
+			const scale = BASE_HEIGHT / img.height;
 			const drawWidth = img.width * scale;
-			const drawHeight = img.height * scale;
+			const drawHeight = BASE_HEIGHT;
 
-			const offsetX = (BASE_WIDTH - drawWidth) / 2;
-			const offsetY = (BASE_HEIGHT - drawHeight) / 2;
-
-			ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+			ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
 			resolve();
 		};
 
@@ -520,36 +509,32 @@ const handleRomanCoolToggle = () => {
 	button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
 
 	if (isActive) {
-		// Keep original size by locking width
-		const width = button.offsetWidth + "px";
+		const width = button.offsetWidth + 'px';
 		button.style.width = width;
-
-		// Change text
-		button.textContent = "Your compliance has been recorded";
+		button.textContent = 'Your compliance has been recorded';
 
 		fireConfettiBurst();
-		sendRomanFanMail?.(); // optional, if you kept email feature
+		sendRomanFanMail?.();
 	}
 };
 
 const sendRomanFanMail = async () => {
 	try {
-		await fetch("https://formspree.io/f/mzdkwebr", {
-			method: "POST",
+		await fetch('https://formspree.io/f/mzdkwebr', {
+			method: 'POST',
 			headers: {
-				"Content-Type": "application/json"
+				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				message: "Someone confirmed Roman Vitanza is the coolest PAO.",
+				message: 'Someone confirmed Roman Vitanza is the coolest PAO.',
 				timestamp: new Date().toISOString(),
 				userAgent: navigator.userAgent
 			})
 		});
 	} catch (error) {
-		console.error("Email send failed:", error);
+		console.error('Email send failed:', error);
 	}
 };
-
 
 const fireConfettiBurst = () => {
 	if (typeof confetti !== 'function') {

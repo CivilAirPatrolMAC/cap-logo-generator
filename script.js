@@ -10,6 +10,7 @@ const BASE_WIDTH = 2000;
 const BASE_HEIGHT = 415;
 const SECONDARY_PADDING_LEFT = 35;
 const SECONDARY_PADDING_RIGHT = 10;
+const SECONDARY_GRAPHIC_OFFSET_LEFT = 140;
 
 let baseLogoLayout = {
 	drawX: 0,
@@ -421,7 +422,7 @@ const getSecondaryLayout = (img) => {
 	const drawWidth = imgWidth * scale;
 	const drawHeight = imgHeight * scale;
 
-	const drawX = BASE_WIDTH - SECONDARY_PADDING_RIGHT - drawWidth;
+	const drawX = BASE_WIDTH - SECONDARY_PADDING_RIGHT - drawWidth - SECONDARY_GRAPHIC_OFFSET_LEFT;
 	const drawY = (BASE_HEIGHT - drawHeight) / 2;
 
 	return {
@@ -449,14 +450,14 @@ const renderGraphic = async () => {
 	const secondaryLayout = getSecondaryLayout(secondaryGraphicImage);
 
 	const canvasWidth = BASE_WIDTH + secondaryLayout.extraWidth;
-const canvasHeight = BASE_HEIGHT;
+	const canvasHeight = BASE_HEIGHT;
 
-const capBlue = '#001871';
-const white = '#FFFFFF';
+	const capBlue = '#001871';
+	const white = '#FFFFFF';
 
-const fontFamily = 'Rajdhani';
-const fontWeight = '700';
-const tracking = 3;
+	const fontFamily = 'Rajdhani';
+	const fontWeight = '700';
+	const tracking = 3;
 
 	canvas.width = canvasWidth;
 	canvas.height = canvasHeight;
@@ -494,6 +495,7 @@ const tracking = 3;
 		minFontSize: 50,
 		maxTextHeight: 70
 	});
+
 	const baselineY = 220 + fontSize;
 	const textColor = isWhiteVersion ? white : capBlue;
 

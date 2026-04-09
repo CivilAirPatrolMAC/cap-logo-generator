@@ -11,7 +11,7 @@ export const emblemOptions = [
 	{ value: 'overseas', label: 'Overseas', type: 'Region', path: '', available: false },
 
 	//NCSA
-	{ value: 'MOTS', label: 'Medical Orientation and Training School', type: 'NCSA', path: 'ncsa/mots.png', available: true },
+	{ value: 'MOTS', label: 'Medical Orientation & Training School', type: 'NCSA', path: 'ncsa/mots.png', available: true },
 	
 	// Wings
 	{ value: 'alabama', label: 'Alabama', type: 'Wing', path: '', available: false },

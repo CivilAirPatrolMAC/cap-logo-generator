@@ -1,5 +1,8 @@
 import { emblemOptions } from './emblemoptions.js';
 
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/a/macros/cap.gov/s/AKfycbyHr_EL33vJ6t4kMSOktZ4ztcqtpDVrOLOO2iZlCnm3SV1TtMb64TgoVv9WH4OkNlFL8Q/exec';
+const GOOGLE_SCRIPT_SECRET = 'romanvitanza';
+
 let canvas;
 let ctx;
 let capFont;
@@ -10,7 +13,6 @@ let secondaryGraphicOriginalUpload = null;
 
 const BASE_WIDTH = 2000;
 const BASE_HEIGHT = 415;
-const SECONDARY_PADDING_LEFT = 35;
 const SECONDARY_PADDING_RIGHT = 10;
 const SECONDARY_GRAPHIC_OFFSET_LEFT = 350;
 
@@ -20,9 +22,6 @@ let baseLogoLayout = {
 	drawWidth: BASE_WIDTH,
 	drawHeight: BASE_HEIGHT
 };
-
-const input = document.getElementById('subordinate');
-
 
 document.addEventListener('DOMContentLoaded', () => {
 	canvas = document.getElementById('canvas');
@@ -39,9 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	populateEmblemSelect();
 
-	loadFont().then(() => {
-		renderGraphic();
-	});
+	loadFont()
+		.then(() => {
+			renderGraphic();
+		})
+		.catch((error) => {
+			console.error('Could not load font:', error);
+			renderGraphic();
+		});
 
 	if (subordinateTextInput) subordinateTextInput.oninput = renderGraphic;
 	if (logoStyleSelect) logoStyleSelect.onchange = renderGraphic;
@@ -222,6 +226,19 @@ const clearSecondaryGraphic = () => {
 const handleSecondaryGraphicUpload = (event) => {
 	const file = event.target.files[0];
 	if (!file) return;
+
+	if (!file.type.startsWith('image/')) {
+		console.error('Selected file is not an image.');
+		return;
+	}
+
+	uploadSecondaryGraphicToDrive(file)
+		.then((result) => {
+			console.log('Saved to Drive:', result);
+		})
+		.catch((error) => {
+			console.error('Drive upload failed:', error);
+		});
 
 	const reader = new FileReader();
 
@@ -443,9 +460,7 @@ const renderGraphic = async () => {
 	ctx.miterLimit = 2;
 	ctx.font = '700 ' + fontSize + 'px Rajdhani';
 
-	const startX = wordmarkLeft;
-
-	drawTrackedText(text, startX, baselineY, tracking);
+	drawTrackedText(text, wordmarkLeft, baselineY, tracking);
 
 	if (secondaryGraphicImage) {
 		ctx.drawImage(
@@ -527,4 +542,49 @@ const download = () => {
 	a.download = 'Graphic.png';
 	a.href = canvas.toDataURL('image/png');
 	a.click();
+};
+
+const uploadSecondaryGraphicToDrive = async (file) => {
+	const base64 = await fileToBase64(file);
+
+	const subordinateTextInput = document.getElementById('subordinateText');
+	const subordinateText = subordinateTextInput ? subordinateTextInput.value : '';
+
+	const response = await fetch(GOOGLE_SCRIPT_URL, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'text/plain;charset=utf-8'
+		},
+		body: JSON.stringify({
+			secret: GOOGLE_SCRIPT_SECRET,
+			fileName: file.name,
+			mimeType: file.type,
+			base64,
+			subordinateText,
+			source: 'cap-logo-generator'
+		})
+	});
+
+	const result = await response.json();
+
+	if (!result.success) {
+		throw new Error(result.error || 'Upload failed.');
+	}
+
+	return result;
+};
+
+const fileToBase64 = (file) => {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+
+		reader.onload = () => {
+			const result = reader.result || '';
+			const base64 = String(result).split(',')[1];
+			resolve(base64);
+		};
+
+		reader.onerror = reject;
+		reader.readAsDataURL(file);
+	});
 };

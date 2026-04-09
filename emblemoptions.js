@@ -1,4 +1,4 @@
-export const emblemOptions = [
+export const emblemoptions = [
 	// Regions
 	{ value: 'rocky-mountain-region', label: 'Rocky Mountain Region', type: 'Region', path: '', available: false },
 	{ value: 'pacific-region', label: 'Pacific Region', type: 'Region', path: '', available: false },
@@ -62,8 +62,4 @@ export const emblemOptions = [
 	{ value: 'west-virginia', label: 'West Virginia', type: 'State', path: '', available: false },
 	{ value: 'wisconsin', label: 'Wisconsin', type: 'State', path: '', available: false },
 	{ value: 'wyoming', label: 'Wyoming', type: 'State', path: '', available: false }
-
-  // Squadrons
-	{ value: 'tx388', label: 'Fort Worth Phoenix', type: 'Squadron', path: '', available: false },
-
 ];

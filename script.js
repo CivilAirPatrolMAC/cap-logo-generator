@@ -27,8 +27,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 	const clearButton = document.getElementById('clearSecondaryGraphic');
 	const transparencyToggle = document.getElementById('secondaryGraphicTransparency');
 	const downloadButton = document.getElementById('download');
+	const emblemSelect = document.getElementById('emblemSelect');
 
 	populateEmblemSelect();
+	initializeSearchableDropdown();
+	updateCharacterCounter();
 
 	try {
 		await loadFont();
@@ -43,8 +46,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 	clearButton?.addEventListener('click', clearSecondaryGraphic);
 	downloadButton?.addEventListener('click', downloadGraphic);
 	transparencyToggle?.addEventListener('change', handleTransparencyToggleChange);
-
-	const emblemSelect = document.getElementById('emblemSelect');
 	emblemSelect?.addEventListener('change', handleEmblemSelection);
 });
 
@@ -66,8 +67,8 @@ function populateEmblemSelect() {
 
 	const groupOrder = ['NCSA', 'Region', 'Wing', 'Group', 'Squadron'];
 	const groupLabels = {
-		Region: 'Regions',
 		NCSA: 'NCSA',
+		Region: 'Regions',
 		Wing: 'Wings',
 		Group: 'Groups',
 		Squadron: 'Squadrons'
@@ -87,7 +88,9 @@ function populateEmblemSelect() {
 
 		const option = document.createElement('option');
 		option.value = item.value;
-		option.textContent = item.available ? item.label : `${item.label} (unavailable)`;
+		option.textContent = item.available
+			? item.label
+			: `${item.label} (unavailable)`;
 		option.disabled = !item.available;
 
 		groups[item.type].appendChild(option);
@@ -115,8 +118,18 @@ function initializeSearchableDropdown() {
 		placeholder: 'Search emblems...',
 		maxOptions: 500,
 		searchField: ['text'],
-		optgroupField: 'optgroup',
+		optgroupField: 'optgroup'
 	});
+}
+
+function updateCharacterCounter() {
+	const subordinateTextInput = document.getElementById('subordinateText');
+	const charCounter = document.getElementById('charCounter');
+
+	if (!subordinateTextInput || !charCounter) return;
+
+	const remaining = MAX_TEXT_LENGTH - subordinateTextInput.value.length;
+	charCounter.textContent = `${remaining} characters remaining`;
 }
 
 async function loadFont() {
@@ -291,6 +304,7 @@ function handleSubordinateTextInput(event) {
 		input.value = input.value.slice(0, MAX_TEXT_LENGTH);
 	}
 
+	updateCharacterCounter();
 	renderGraphic();
 }
 
@@ -367,7 +381,11 @@ function getSecondaryLayout(img) {
 	const scale = maxHeight / img.height;
 	const drawWidth = img.width * scale;
 	const drawHeight = img.height * scale;
-	const drawX = BASE_WIDTH - SECONDARY_PADDING_RIGHT - drawWidth - SECONDARY_GRAPHIC_OFFSET_LEFT;
+	const drawX =
+		BASE_WIDTH -
+		SECONDARY_PADDING_RIGHT -
+		drawWidth -
+		SECONDARY_GRAPHIC_OFFSET_LEFT;
 	const drawY = (BASE_HEIGHT - drawHeight) / 2;
 
 	return { drawX, drawY, drawWidth, drawHeight };
@@ -379,7 +397,8 @@ async function renderGraphic() {
 	const subordinateTextInput = document.getElementById('subordinateText');
 	const logoStyleSelect = document.getElementById('logoStyle');
 
-	const rawInput = (subordinateTextInput?.value || 'Marketing & Communication').slice(0, MAX_TEXT_LENGTH);
+	const rawInput = (subordinateTextInput?.value || 'Marketing & Communication')
+		.slice(0, MAX_TEXT_LENGTH);
 	const text = rawInput.toUpperCase();
 	const selectedStyle = logoStyleSelect?.value || 'blue';
 

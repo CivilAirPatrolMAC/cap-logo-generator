@@ -457,7 +457,7 @@ const renderGraphic = async () => {
 
 	const fontFamily = 'Rajdhani';
 	const fontWeight = '700';
-	const tracking = text.length > 28 ? 1 : 3;
+	const tracking = text.length > 20 ? 1 : 3;
 
 	canvas.width = canvasWidth;
 	canvas.height = canvasHeight;

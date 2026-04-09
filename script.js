@@ -509,7 +509,7 @@ ctx.miterLimit = 2;
 ctx.font = '700 ' + fontSize + 'px Rajdhani';
 
 const textWidth = measureTrackedText(text, tracking);
-const startX = wordmarkLeft -200;
+const startX = wordmarkLeft -170;
 	
 drawTrackedText(text, startX, baselineY, tracking);
 

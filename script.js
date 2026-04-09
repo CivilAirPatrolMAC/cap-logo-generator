@@ -2,9 +2,17 @@ import { emblemOptions } from './emblemoptions.js';
 
 const BASE_WIDTH = 2000;
 const BASE_HEIGHT = 415;
-const SECONDARY_PADDING_RIGHT = 10;
-const SECONDARY_GRAPHIC_OFFSET_LEFT = 350;
 const MAX_TEXT_LENGTH = 50;
+
+// Layout tuning
+const BASE_LOGO_SCALE_MULTIPLIER = 1.08;
+const WORDMARK_LEFT = 430;
+const DEFAULT_WORDMARK_RIGHT = 1190;
+const WORDMARK_TO_EMBLEM_GAP = 18;
+const SECONDARY_PADDING_RIGHT = 14;
+const SECONDARY_GRAPHIC_OFFSET_LEFT = 340;
+const SUBORDINATE_TARGET_FILL_RATIO = 0.985;
+const SUBORDINATE_MAX_TEXT_HEIGHT = 70;
 
 let canvas;
 let ctx;
@@ -152,16 +160,18 @@ function loadImage(imagePath) {
 async function drawBaseLogo(imagePath) {
 	const img = await loadImage(imagePath);
 
-	const scaleMultiplier = 1.15; // 
-
-	const scale = (BASE_HEIGHT / img.height) * scaleMultiplier;
+	const scale = (BASE_HEIGHT / img.height) * BASE_LOGO_SCALE_MULTIPLIER;
 	const drawWidth = img.width * scale;
 	const drawHeight = img.height * scale;
-
-	// Keep it vertically centered after scaling
 	const offsetY = (BASE_HEIGHT - drawHeight) / 2;
 
 	ctx.drawImage(img, 0, offsetY, drawWidth, drawHeight);
+
+	return {
+		drawWidth,
+		drawHeight,
+		offsetY
+	};
 }
 
 function createCanvasFromImage(img) {
@@ -374,9 +384,77 @@ function getResponsiveFontSize(text, options) {
 	);
 }
 
-function getSecondaryLayout(img) {
+function getTextVerticalBounds(text, fontSize, baselineY) {
+	ctx.font = `700 ${fontSize}px Rajdhani`;
+	const metrics = ctx.measureText(text || 'H');
+
+	const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.8;
+	const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2;
+
+	return {
+		top: baselineY - ascent,
+		bottom: baselineY + descent,
+		height: ascent + descent
+	};
+}
+
+function getVisibleImageBounds(img) {
+	const { tempCanvas, tempCtx } = createCanvasFromImage(img);
+	const { width, height } = tempCanvas;
+	const imageData = tempCtx.getImageData(0, 0, width, height);
+	const data = imageData.data;
+
+	let top = height;
+	let bottom = -1;
+	let left = width;
+	let right = -1;
+
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			const i = (y * width + x) * 4;
+			const r = data[i];
+			const g = data[i + 1];
+			const b = data[i + 2];
+			const a = data[i + 3];
+
+			const isVisible = a > 10 && !(r > 250 && g > 250 && b > 250);
+			if (!isVisible) continue;
+
+			if (x < left) left = x;
+			if (x > right) right = x;
+			if (y < top) top = y;
+			if (y > bottom) bottom = y;
+		}
+	}
+
+	if (right === -1 || bottom === -1) {
+		return {
+			left: 0,
+			top: 0,
+			right: width - 1,
+			bottom: height - 1,
+			width,
+			height
+		};
+	}
+
+	return {
+		left,
+		top,
+		right,
+		bottom,
+		width: right - left + 1,
+		height: bottom - top + 1
+	};
+}
+
+function getSecondaryLayout(img, wordmarkTop, wordmarkBottom) {
 	if (!img) {
 		return {
+			sourceX: 0,
+			sourceY: 0,
+			sourceWidth: 0,
+			sourceHeight: 0,
 			drawX: 0,
 			drawY: 0,
 			drawWidth: 0,
@@ -384,18 +462,29 @@ function getSecondaryLayout(img) {
 		};
 	}
 
-	const maxHeight = BASE_HEIGHT - 30;
-	const scale = maxHeight / img.height;
-	const drawWidth = img.width * scale;
-	const drawHeight = img.height * scale;
+	const visibleBounds = getVisibleImageBounds(img);
+	const maxVisibleHeight = Math.max(1, wordmarkBottom - wordmarkTop);
+	const scale = maxVisibleHeight / visibleBounds.height;
+
+	const drawWidth = visibleBounds.width * scale;
+	const drawHeight = visibleBounds.height * scale;
 	const drawX =
 		BASE_WIDTH -
 		SECONDARY_PADDING_RIGHT -
 		drawWidth -
 		SECONDARY_GRAPHIC_OFFSET_LEFT;
-	const drawY = (BASE_HEIGHT - drawHeight) / 2;
+	const drawY = wordmarkTop + (maxVisibleHeight - drawHeight) / 2;
 
-	return { drawX, drawY, drawWidth, drawHeight };
+	return {
+		sourceX: visibleBounds.left,
+		sourceY: visibleBounds.top,
+		sourceWidth: visibleBounds.width,
+		sourceHeight: visibleBounds.height,
+		drawX,
+		drawY,
+		drawWidth,
+		drawHeight
+	};
 }
 
 async function renderGraphic() {
@@ -411,7 +500,6 @@ async function renderGraphic() {
 
 	const isWhiteVersion = selectedStyle === 'white';
 	const logoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
-	const secondaryLayout = getSecondaryLayout(secondaryGraphicImage);
 
 	canvas.width = BASE_WIDTH;
 	canvas.height = BASE_HEIGHT;
@@ -426,26 +514,53 @@ async function renderGraphic() {
 		return;
 	}
 
-	const wordmarkLeft = 440;
-	const defaultWordmarkRight = 1125;
-	const wordmarkRight = secondaryGraphicImage
-		? Math.min(defaultWordmarkRight, secondaryLayout.drawX - 10)
-		: defaultWordmarkRight;
-	const wordmarkWidth = Math.max(100, wordmarkRight - wordmarkLeft);
-
 	const tracking = text.length > 20 ? 1 : 3;
-	const fontSize = getResponsiveFontSize(text, {
+	const defaultWordmarkWidth = DEFAULT_WORDMARK_RIGHT - WORDMARK_LEFT;
+	const baselineAnchorY = 220;
+
+	let fontSize = getResponsiveFontSize(text, {
+		fontFamily: 'Rajdhani',
+		fontWeight: '700',
+		tracking,
+		availableWidth: defaultWordmarkWidth,
+		targetFillRatio: SUBORDINATE_TARGET_FILL_RATIO,
+		maxFontSize: 130,
+		minFontSize: 12,
+		maxTextHeight: SUBORDINATE_MAX_TEXT_HEIGHT
+	});
+
+	let baselineY = baselineAnchorY + fontSize;
+	let wordmarkBounds = getTextVerticalBounds(text, fontSize, baselineY);
+	let secondaryLayout = getSecondaryLayout(
+		secondaryGraphicImage,
+		wordmarkBounds.top,
+		wordmarkBounds.bottom
+	);
+
+	const wordmarkRight = secondaryGraphicImage
+		? Math.min(DEFAULT_WORDMARK_RIGHT, secondaryLayout.drawX - WORDMARK_TO_EMBLEM_GAP)
+		: DEFAULT_WORDMARK_RIGHT;
+	const wordmarkWidth = Math.max(100, wordmarkRight - WORDMARK_LEFT);
+
+	fontSize = getResponsiveFontSize(text, {
 		fontFamily: 'Rajdhani',
 		fontWeight: '700',
 		tracking,
 		availableWidth: wordmarkWidth,
-		targetFillRatio: 0.8,
+		targetFillRatio: SUBORDINATE_TARGET_FILL_RATIO,
 		maxFontSize: 130,
 		minFontSize: 12,
-		maxTextHeight: 70
+		maxTextHeight: SUBORDINATE_MAX_TEXT_HEIGHT
 	});
 
-	const baselineY = 220 + fontSize;
+	baselineY = baselineAnchorY + fontSize;
+	wordmarkBounds = getTextVerticalBounds(text, fontSize, baselineY);
+	secondaryLayout = getSecondaryLayout(
+		secondaryGraphicImage,
+		wordmarkBounds.top,
+		wordmarkBounds.bottom
+	);
+
 	const textColor = isWhiteVersion ? '#FFFFFF' : '#001871';
 
 	ctx.fillStyle = textColor;
@@ -455,11 +570,15 @@ async function renderGraphic() {
 	ctx.miterLimit = 2;
 	ctx.font = `700 ${fontSize}px Rajdhani`;
 
-	drawTrackedText(text, wordmarkLeft, baselineY, tracking);
+	drawTrackedText(text, WORDMARK_LEFT, baselineY, tracking);
 
 	if (secondaryGraphicImage) {
 		ctx.drawImage(
 			secondaryGraphicImage,
+			secondaryLayout.sourceX,
+			secondaryLayout.sourceY,
+			secondaryLayout.sourceWidth,
+			secondaryLayout.sourceHeight,
 			secondaryLayout.drawX,
 			secondaryLayout.drawY,
 			secondaryLayout.drawWidth,

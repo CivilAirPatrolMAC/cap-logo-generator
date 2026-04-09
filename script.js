@@ -451,7 +451,7 @@ const renderGraphic = async () => {
 	const canvasWidth = BASE_WIDTH + secondaryLayout.extraWidth;
 	const canvasHeight = BASE_HEIGHT;
 
-	const baselineY = 250;
+	const baselineY = 270;
 
 	const capBlue = '#001871';
 	const white = '#FFFFFF';

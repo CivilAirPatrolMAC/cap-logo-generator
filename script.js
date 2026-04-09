@@ -417,7 +417,8 @@ function getVisibleImageBounds(img) {
 			const b = data[i + 2];
 			const a = data[i + 3];
 
-			const isVisible = a > 10 && !(r > 250 && g > 250 && b > 250);
+			// Ignore transparent pixels and near-white background pixels
+			const isVisible = a > 16 && !(r > 245 && g > 245 && b > 245);
 			if (!isVisible) continue;
 
 			if (x < left) left = x;
@@ -437,6 +438,14 @@ function getVisibleImageBounds(img) {
 			height
 		};
 	}
+
+	// Small padding so we do not crop too aggressively
+	const pad = 2;
+
+	left = Math.max(0, left - pad);
+	top = Math.max(0, top - pad);
+	right = Math.min(width - 1, right + pad);
+	bottom = Math.min(height - 1, bottom + pad);
 
 	return {
 		left,
@@ -461,6 +470,41 @@ function getSecondaryLayout(img, wordmarkTop, wordmarkBottom) {
 			drawHeight: 0
 		};
 	}
+
+	const visibleBounds = getVisibleImageBounds(img);
+
+	// Keep emblem slightly smaller than the subordinate wordmark height
+	const maxVisibleHeight = Math.max(1, (wordmarkBottom - wordmarkTop) * 0.92);
+
+	// Prevent very wide emblems from taking over the layout
+	const maxVisibleWidth = 240;
+
+	const heightScale = maxVisibleHeight / visibleBounds.height;
+	const widthScale = maxVisibleWidth / visibleBounds.width;
+	const scale = Math.min(heightScale, widthScale);
+
+	const drawWidth = visibleBounds.width * scale;
+	const drawHeight = visibleBounds.height * scale;
+
+	const drawX =
+		BASE_WIDTH -
+		SECONDARY_PADDING_RIGHT -
+		drawWidth -
+		SECONDARY_GRAPHIC_OFFSET_LEFT;
+
+	const drawY = wordmarkTop + ((wordmarkBottom - wordmarkTop) - drawHeight) / 2;
+
+	return {
+		sourceX: visibleBounds.left,
+		sourceY: visibleBounds.top,
+		sourceWidth: visibleBounds.width,
+		sourceHeight: visibleBounds.height,
+		drawX,
+		drawY,
+		drawWidth,
+		drawHeight
+	};
+}
 
 	const visibleBounds = getVisibleImageBounds(img);
 	const maxVisibleHeight = Math.max(1, wordmarkBottom - wordmarkTop);

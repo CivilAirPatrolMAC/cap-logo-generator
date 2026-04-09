@@ -15,8 +15,8 @@ export const emblemOptions = [
 
 	//Directorates
 	{ value: 'CadetPrograms', label: 'Cadet Programs', type: 'directorate', path: 'directorate/cadetprograms.png', available: true },
+	{ value: 'PublicAffairs', label: 'Marketing & Communications', type: 'directorate', path: 'directorate/publicaffairs.webp', available: true },
 
-	
 	// Wings
 	{ value: 'alabama', label: 'Alabama', type: 'Wing', path: '', available: false },
 	{ value: 'alaska', label: 'Alaska', type: 'Wing', path: '', available: false },

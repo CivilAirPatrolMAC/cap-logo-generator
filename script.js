@@ -457,7 +457,7 @@ const renderGraphic = async () => {
 
 	const fontFamily = 'Rajdhani';
 	const fontWeight = '700';
-	const tracking = 3;
+	const tracking = text.length > 28 ? 1 : 3;
 
 	canvas.width = canvasWidth;
 	canvas.height = canvasHeight;
@@ -480,21 +480,21 @@ const renderGraphic = async () => {
 	const wordmarkLeft = 380;
 	const defaultWordmarkRight = 1125;
 	const wordmarkRight = secondaryGraphicImage
-		? Math.min(defaultWordmarkRight, secondaryLayout.drawX - 25)
+		? Math.min(defaultWordmarkRight, secondaryLayout.drawX - 10)
 		: defaultWordmarkRight;
 
 	const wordmarkWidth = Math.max(100, wordmarkRight - wordmarkLeft);
 
 	const fontSize = getResponsiveFontSize(text, {
-	fontFamily,
-	fontWeight,
-	tracking,
-	availableWidth: wordmarkWidth,
-	targetFillRatio: 1,
-	maxFontSize: 130,
-	minFontSize: 28,
-	maxTextHeight: 70
-});
+		fontFamily,
+		fontWeight,
+		tracking,
+		availableWidth: wordmarkWidth,
+		targetFillRatio: 1,
+		maxFontSize: 130,
+		minFontSize: 28,
+		maxTextHeight: 70
+	});
 
 	const baselineY = 220 + fontSize;
 	const textColor = isWhiteVersion ? white : capBlue;

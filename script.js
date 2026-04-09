@@ -486,15 +486,15 @@ const renderGraphic = async () => {
 	const wordmarkWidth = Math.max(100, wordmarkRight - wordmarkLeft);
 
 	const fontSize = getResponsiveFontSize(text, {
-		fontFamily,
-		fontWeight,
-		tracking,
-		availableWidth: wordmarkWidth,
-		targetFillRatio: 1,
-		maxFontSize: 130,
-		minFontSize: 30,
-		maxTextHeight: 70
-	});
+	fontFamily,
+	fontWeight,
+	tracking,
+	availableWidth: wordmarkWidth,
+	targetFillRatio: 1,
+	maxFontSize: 130,
+	minFontSize: 28,
+	maxTextHeight: 70
+});
 
 	const baselineY = 220 + fontSize;
 	const textColor = isWhiteVersion ? white : capBlue;

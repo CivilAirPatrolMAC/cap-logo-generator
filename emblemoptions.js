@@ -10,6 +10,9 @@ export const emblemOptions = [
 	{ value: 'southwest-region', label: 'Southwest Region', type: 'Region', path: 'region/swremblem.png', available: true },
 	{ value: 'overseas', label: 'Overseas', type: 'Region', path: '', available: false },
 
+	//NCSA
+	{ value: 'MOTS', label: 'Medical Orientation and Training School', type: 'NCSA', path: '', available: false },
+	
 	// Wings
 	{ value: 'alabama', label: 'Alabama', type: 'Wing', path: '', available: false },
 	{ value: 'alaska', label: 'Alaska', type: 'Wing', path: '', available: false },

@@ -4,6 +4,7 @@ const BASE_WIDTH = 2000;
 const BASE_HEIGHT = 415;
 const SECONDARY_PADDING_RIGHT = 10;
 const SECONDARY_GRAPHIC_OFFSET_LEFT = 350;
+const MAX_TEXT_LENGTH = 50;
 
 let canvas;
 let ctx;
@@ -36,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		console.error('Initialization failed:', error);
 	}
 
-	subordinateTextInput?.addEventListener('input', renderGraphic);
+	subordinateTextInput?.addEventListener('input', handleSubordinateTextInput);
 	logoStyleSelect?.addEventListener('change', renderGraphic);
 	secondaryInput?.addEventListener('change', handleSecondaryGraphicUpload);
 	clearButton?.addEventListener('click', clearSecondaryGraphic);
@@ -282,6 +283,17 @@ async function handleEmblemSelection(event) {
 	}
 }
 
+function handleSubordinateTextInput(event) {
+	const input = event.target;
+	if (!input) return;
+
+	if (input.value.length > MAX_TEXT_LENGTH) {
+		input.value = input.value.slice(0, MAX_TEXT_LENGTH);
+	}
+
+	renderGraphic();
+}
+
 function measureTrackedText(text, tracking) {
 	let width = 0;
 
@@ -367,7 +379,7 @@ async function renderGraphic() {
 	const subordinateTextInput = document.getElementById('subordinateText');
 	const logoStyleSelect = document.getElementById('logoStyle');
 
-	const rawInput = subordinateTextInput?.value || 'Marketing & Communication';
+	const rawInput = (subordinateTextInput?.value || 'Marketing & Communication').slice(0, MAX_TEXT_LENGTH);
 	const text = rawInput.toUpperCase();
 	const selectedStyle = logoStyleSelect?.value || 'blue';
 
@@ -403,7 +415,7 @@ async function renderGraphic() {
 		availableWidth: wordmarkWidth,
 		targetFillRatio: 1,
 		maxFontSize: 130,
-		minFontSize: 20,
+		minFontSize: 12,
 		maxTextHeight: 70
 	});
 

@@ -11,7 +11,7 @@ export const emblemOptions = [
 	{ value: 'overseas', label: 'Overseas', type: 'Region', path: '', available: false },
 
 	//NCSA
-	{ value: 'MOTS', label: 'Medical Orientation and Training School', type: 'NCSA', path: '', available: false },
+	{ value: 'MOTS', label: 'Medical Orientation and Training School', type: 'NCSA', path: 'ncsa/mots.png', available: true },
 	
 	// Wings
 	{ value: 'alabama', label: 'Alabama', type: 'Wing', path: '', available: false },
@@ -76,7 +76,7 @@ export const emblemOptions = [
 	{ value: 'TXG7', label: 'TXWG Group 7', type: 'Group', path: '', available: false },
 
 	//Squadrons
-	{ value: 'TX388', label: 'SWR-TX-388', type: 'Squadron', path: '', available: false },
+	{ value: 'TX388', label: 'SWR-TX-388', type: 'Squadron', path: 'squadron/tx388emblem.png', available: true },
 	{ value: 'TX154', label: 'SWR-TX-154', type: 'Squadron', path: '', available: false }
 
 

@@ -6,6 +6,14 @@ const SECONDARY_PADDING_RIGHT = 10;
 const SECONDARY_GRAPHIC_OFFSET_LEFT = 350;
 const MAX_TEXT_LENGTH = 50;
 
+// Fixed drawing box for the main CAP logo/wordmark
+const BASE_LOGO_BOX = {
+	x: 0,
+	y: 0,
+	width: 1125,
+	height: BASE_HEIGHT
+};
+
 let canvas;
 let ctx;
 let capFont;
@@ -139,10 +147,18 @@ function loadImage(imagePath) {
 
 async function drawBaseLogo(imagePath) {
 	const img = await loadImage(imagePath);
-	const scale = BASE_HEIGHT / img.height;
-	const drawWidth = img.width * scale;
 
-	ctx.drawImage(img, 0, 0, drawWidth, BASE_HEIGHT);
+	const scale = Math.min(
+		BASE_LOGO_BOX.width / img.width,
+		BASE_LOGO_BOX.height / img.height
+	);
+
+	const drawWidth = img.width * scale;
+	const drawHeight = img.height * scale;
+	const drawX = BASE_LOGO_BOX.x;
+	const drawY = BASE_LOGO_BOX.y + (BASE_LOGO_BOX.height - drawHeight) / 2;
+
+	ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
 }
 
 function createCanvasFromImage(img) {
@@ -301,12 +317,7 @@ function updateCharCounter(text) {
 	if (!counter) return;
 
 	counter.textContent = `${text.length} / ${MAX_TEXT_LENGTH}`;
-
-	if (text.length >= MAX_TEXT_LENGTH) {
-		counter.style.color = 'red';
-	} else {
-		counter.style.color = '';
-	}
+	counter.style.color = text.length >= MAX_TEXT_LENGTH ? 'red' : '';
 }
 
 function measureTrackedText(text, tracking) {

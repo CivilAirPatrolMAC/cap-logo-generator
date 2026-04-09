@@ -11,6 +11,13 @@ const BASE_HEIGHT = 415;
 const SECONDARY_PADDING_LEFT = 35;
 const SECONDARY_PADDING_RIGHT = 35;
 
+let baseLogoLayout = {
+	drawX: 0,
+	drawY: 0,
+	drawWidth: BASE_WIDTH,
+	drawHeight: BASE_HEIGHT
+};
+
 const input = document.getElementById('subordinate');
 
 const emblemOptions = [
@@ -162,9 +169,18 @@ const drawSource = (imagePath) => {
 			const scale = BASE_HEIGHT / img.height;
 			const drawWidth = img.width * scale;
 			const drawHeight = BASE_HEIGHT;
+			const drawX = 0;
+			const drawY = 0;
 
-			ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
-			resolve();
+			baseLogoLayout = {
+				drawX,
+				drawY,
+				drawWidth,
+				drawHeight
+			};
+
+			ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+			resolve(baseLogoLayout);
 		};
 
 		img.onerror = reject;
@@ -438,7 +454,6 @@ const renderGraphic = async () => {
 	const canvasWidth = BASE_WIDTH + secondaryLayout.extraWidth;
 	const canvasHeight = BASE_HEIGHT;
 
-	const startX = 600;
 	const baselineY = 355;
 	const safeRightPadding = 10;
 
@@ -448,18 +463,6 @@ const renderGraphic = async () => {
 	const fontFamily = 'Rajdhani';
 	const fontWeight = '700';
 	const tracking = 3;
-
-	const availableWidth = BASE_WIDTH - startX - safeRightPadding;
-	const fontSize = getResponsiveFontSize(text, {
-		fontFamily,
-		fontWeight,
-		tracking,
-		availableWidth,
-		targetFillRatio: 0.98,
-		maxFontSize: 130,
-		minFontSize: 50,
-		maxTextHeight: 70
-	});
 
 	canvas.width = canvasWidth;
 	canvas.height = canvasHeight;
@@ -479,6 +482,19 @@ const renderGraphic = async () => {
 		return;
 	}
 
+	const availableWidth = Math.max(100, baseLogoLayout.drawWidth - safeRightPadding * 2);
+
+	const fontSize = getResponsiveFontSize(text, {
+		fontFamily,
+		fontWeight,
+		tracking,
+		availableWidth,
+		targetFillRatio: 0.9,
+		maxFontSize: 130,
+		minFontSize: 50,
+		maxTextHeight: 70
+	});
+
 	const textColor = isWhiteVersion ? white : capBlue;
 
 	ctx.fillStyle = textColor;
@@ -487,6 +503,9 @@ const renderGraphic = async () => {
 	ctx.lineJoin = 'round';
 	ctx.miterLimit = 2;
 	ctx.font = '700 ' + fontSize + 'px Rajdhani';
+
+	const textWidth = measureTrackedText(text, tracking);
+	const startX = baseLogoLayout.drawX + (baseLogoLayout.drawWidth - textWidth) / 2;
 
 	drawTrackedText(text, startX, baselineY, tracking);
 

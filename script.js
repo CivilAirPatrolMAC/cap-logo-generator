@@ -494,7 +494,7 @@ const tracking = 3;
 		minFontSize: 50,
 		maxTextHeight: 70
 	});
-	const baselineY = 270 + fontSize;
+	const baselineY = 220 + fontSize;
 	const textColor = isWhiteVersion ? white : capBlue;
 
 	ctx.fillStyle = textColor;

@@ -61,5 +61,20 @@ export const emblemOptions = [
 	{ value: 'washington', label: 'Washington', type: 'State', path: '', available: false },
 	{ value: 'west-virginia', label: 'West Virginia', type: 'State', path: '', available: false },
 	{ value: 'wisconsin', label: 'Wisconsin', type: 'State', path: '', available: false },
-	{ value: 'wyoming', label: 'Wyoming', type: 'State', path: '', available: false }
+	{ value: 'wyoming', label: 'Wyoming', type: 'State', path: '', available: false },
+
+	// Groups
+	{ value: 'TXG1', label: 'TXWG Group 1', type: 'Group', path: '', available: false },
+	{ value: 'TXG2', label: 'TXWG Group 2', type: 'Group', path: '', available: false },
+	{ value: 'TXG3', label: 'TXWG Group 3', type: 'Group', path: '', available: false },
+	{ value: 'TXG4', label: 'TXWG Group 4', type: 'Group', path: '', available: false },
+	{ value: 'TXG5', label: 'TXWG Group 5', type: 'Group', path: '', available: false },
+	{ value: 'TXG6', label: 'TXWG Group 6', type: 'Group', path: '', available: false },
+	{ value: 'TXG7', label: 'TXWG Group 7', type: 'Group', path: '', available: false },
+
+	//Squadrons
+	{ value: 'TX388', label: 'SWR-TX-388', type: 'Squadron', path: '', available: false },
+	{ value: 'TX154', label: 'SWR-TX-154', type: 'Sqyadron', path: '', available: false }
+
+
 ];

@@ -8,6 +8,7 @@ const SECONDARY_GRAPHIC_OFFSET_LEFT = 350;
 let canvas;
 let ctx;
 let capFont;
+let emblemDropdown = null;
 
 let secondaryGraphicImage = null;
 let secondaryGraphicSource = null; // 'upload' | 'dropdown' | null
@@ -15,13 +16,14 @@ let secondaryGraphicOriginalUpload = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
 	canvas = document.getElementById('canvas');
+	if (!canvas) return;
+
 	ctx = canvas.getContext('2d');
 
 	const subordinateTextInput = document.getElementById('subordinateText');
 	const logoStyleSelect = document.getElementById('logoStyle');
 	const secondaryInput = document.getElementById('secondaryGraphic');
 	const clearButton = document.getElementById('clearSecondaryGraphic');
-	const emblemSelect = document.getElementById('emblemSelect');
 	const transparencyToggle = document.getElementById('secondaryGraphicTransparency');
 	const downloadButton = document.getElementById('download');
 
@@ -38,14 +40,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 	logoStyleSelect?.addEventListener('change', renderGraphic);
 	secondaryInput?.addEventListener('change', handleSecondaryGraphicUpload);
 	clearButton?.addEventListener('click', clearSecondaryGraphic);
-	emblemSelect?.addEventListener('change', handleEmblemSelection);
 	downloadButton?.addEventListener('click', downloadGraphic);
 	transparencyToggle?.addEventListener('change', handleTransparencyToggleChange);
+
+	const emblemSelect = document.getElementById('emblemSelect');
+	emblemSelect?.addEventListener('change', handleEmblemSelection);
 });
 
 function populateEmblemSelect() {
 	const emblemSelect = document.getElementById('emblemSelect');
 	if (!emblemSelect) return;
+
+	if (emblemDropdown) {
+		emblemDropdown.destroy();
+		emblemDropdown = null;
+	}
 
 	emblemSelect.innerHTML = '';
 
@@ -54,34 +63,58 @@ function populateEmblemSelect() {
 	noneOption.textContent = 'None';
 	emblemSelect.appendChild(noneOption);
 
-	const groups = {
-		Region: document.createElement('optgroup'),
-		Wing: document.createElement('optgroup'),
-		Group: document.createElement('optgroup'),
-		Squadron: document.createElement('optgroup')
+	const groupOrder = ['Region', 'Wing', 'Group', 'Squadron'];
+	const groupLabels = {
+		Region: 'Regions',
+		Wing: 'Wings',
+		Group: 'Groups',
+		Squadron: 'Squadrons'
 	};
 
-	groups.Region.label = 'Regions';
-	groups.Wing.label = 'Wings';
-	groups.Group.label = 'Groups';
-	groups.Squadron.label = 'Squadrons';
+	const groups = {};
+
+	for (const type of groupOrder) {
+		const optgroup = document.createElement('optgroup');
+		optgroup.label = groupLabels[type];
+		groups[type] = optgroup;
+	}
 
 	for (const item of emblemOptions) {
+		if (!item?.value || !item?.label || !item?.type) continue;
+		if (!groups[item.type]) continue;
+
 		const option = document.createElement('option');
 		option.value = item.value;
 		option.textContent = item.available ? item.label : `${item.label} (unavailable)`;
 		option.disabled = !item.available;
 
-		if (groups[item.type]) {
-			groups[item.type].appendChild(option);
-		}
+		groups[item.type].appendChild(option);
 	}
 
-	for (const key of ['Region', 'Wing', 'Group', 'Squadron']) {
-		if (groups[key].children.length > 0) {
-			emblemSelect.appendChild(groups[key]);
+	for (const type of groupOrder) {
+		if (groups[type].children.length > 0) {
+			emblemSelect.appendChild(groups[type]);
 		}
 	}
+}
+
+function initializeSearchableDropdown() {
+	const select = document.getElementById('emblemSelect');
+	if (!select) return;
+
+	if (typeof TomSelect === 'undefined') {
+		console.warn('TomSelect is not loaded.');
+		return;
+	}
+
+	emblemDropdown = new TomSelect(select, {
+		create: false,
+		allowEmptyOption: true,
+		placeholder: 'Search emblems...',
+		maxOptions: 500,
+		searchField: ['text'],
+		optgroupField: 'optgroup',
+	});
 }
 
 async function loadFont() {
@@ -179,10 +212,14 @@ function clearSecondaryGraphic() {
 	secondaryGraphicOriginalUpload = null;
 
 	const secondaryGraphicInput = document.getElementById('secondaryGraphic');
-	const emblemSelect = document.getElementById('emblemSelect');
-
 	if (secondaryGraphicInput) secondaryGraphicInput.value = '';
-	if (emblemSelect) emblemSelect.value = '';
+
+	if (emblemDropdown) {
+		emblemDropdown.clear(true);
+	} else {
+		const emblemSelect = document.getElementById('emblemSelect');
+		if (emblemSelect) emblemSelect.value = '';
+	}
 
 	renderGraphic();
 }
@@ -200,8 +237,12 @@ function handleSecondaryGraphicUpload(event) {
 			secondaryGraphicOriginalUpload = img;
 			secondaryGraphicSource = 'upload';
 
-			const emblemSelect = document.getElementById('emblemSelect');
-			if (emblemSelect) emblemSelect.value = '';
+			if (emblemDropdown) {
+				emblemDropdown.clear(true);
+			} else {
+				const emblemSelect = document.getElementById('emblemSelect');
+				if (emblemSelect) emblemSelect.value = '';
+			}
 
 			await processUploadedSecondaryGraphic();
 		};
@@ -245,7 +286,9 @@ function measureTrackedText(text, tracking) {
 
 	for (let i = 0; i < text.length; i++) {
 		width += ctx.measureText(text[i]).width;
-		if (i < text.length - 1) width += tracking;
+		if (i < text.length - 1) {
+			width += tracking;
+		}
 	}
 
 	return width;
@@ -351,10 +394,11 @@ async function renderGraphic() {
 		: defaultWordmarkRight;
 	const wordmarkWidth = Math.max(100, wordmarkRight - wordmarkLeft);
 
+	const tracking = text.length > 20 ? 1 : 3;
 	const fontSize = getResponsiveFontSize(text, {
 		fontFamily: 'Rajdhani',
 		fontWeight: '700',
-		tracking: text.length > 20 ? 1 : 3,
+		tracking,
 		availableWidth: wordmarkWidth,
 		targetFillRatio: 1,
 		maxFontSize: 130,
@@ -364,7 +408,6 @@ async function renderGraphic() {
 
 	const baselineY = 220 + fontSize;
 	const textColor = isWhiteVersion ? '#FFFFFF' : '#001871';
-	const tracking = text.length > 20 ? 1 : 3;
 
 	ctx.fillStyle = textColor;
 	ctx.strokeStyle = textColor;
@@ -392,26 +435,3 @@ function downloadGraphic() {
 	link.href = canvas.toDataURL('image/png');
 	link.click();
 }
-
-let emblemDropdown;
-
-function initializeSearchableDropdown() {
-	const select = document.getElementById('emblemSelect');
-	if (!select) return;
-
-	if (emblemDropdown) {
-		emblemDropdown.destroy();
-	}
-
-	emblemDropdown = new TomSelect(select, {
-		create: false,
-		sortField: {
-			field: "text",
-			direction: "asc"
-		},
-		placeholder: "Search emblems...",
-		maxOptions: 500,
-	});
-}
-
-initializeSearchableDropdown();

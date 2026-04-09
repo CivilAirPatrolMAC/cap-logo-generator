@@ -1,4 +1,4 @@
-export const emblemoptions = [
+export const emblemOptions = [
 	// Regions
 	{ value: 'rocky-mountain-region', label: 'Rocky Mountain Region', type: 'Region', path: '', available: false },
 	{ value: 'pacific-region', label: 'Pacific Region', type: 'Region', path: '', available: false },

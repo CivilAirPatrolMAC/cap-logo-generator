@@ -367,7 +367,21 @@ function getResponsiveFontSize(text, options) {
 	);
 }
 
-function getSecondaryLayout(img) {
+function getTextVerticalBounds(text, fontSize, baselineY) {
+	ctx.font = `700 ${fontSize}px Rajdhani`;
+	const metrics = ctx.measureText(text || 'H');
+
+	const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.8;
+	const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2;
+
+	return {
+		top: baselineY - ascent,
+		bottom: baselineY + descent,
+		height: ascent + descent
+	};
+}
+
+function getSecondaryLayout(img, wordmarkTop, wordmarkBottom) {
 	if (!img) {
 		return {
 			drawX: 0,
@@ -377,8 +391,8 @@ function getSecondaryLayout(img) {
 		};
 	}
 
-	const maxHeight = BASE_HEIGHT - 30;
-	const scale = maxHeight / img.height;
+	const maxHeight = Math.max(1, wordmarkBottom - wordmarkTop);
+	const scale = Math.min(1, maxHeight / img.height);
 	const drawWidth = img.width * scale;
 	const drawHeight = img.height * scale;
 	const drawX =
@@ -386,7 +400,7 @@ function getSecondaryLayout(img) {
 		SECONDARY_PADDING_RIGHT -
 		drawWidth -
 		SECONDARY_GRAPHIC_OFFSET_LEFT;
-	const drawY = (BASE_HEIGHT - drawHeight) / 2;
+	const drawY = wordmarkTop + (maxHeight - drawHeight) / 2;
 
 	return { drawX, drawY, drawWidth, drawHeight };
 }
@@ -404,7 +418,6 @@ async function renderGraphic() {
 
 	const isWhiteVersion = selectedStyle === 'white';
 	const logoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
-	const secondaryLayout = getSecondaryLayout(secondaryGraphicImage);
 
 	canvas.width = BASE_WIDTH;
 	canvas.height = BASE_HEIGHT;
@@ -421,13 +434,34 @@ async function renderGraphic() {
 
 	const wordmarkLeft = 380;
 	const defaultWordmarkRight = 1125;
+	const defaultWordmarkWidth = defaultWordmarkRight - wordmarkLeft;
+	const tracking = text.length > 20 ? 1 : 3;
+	const baselineY = 220;
+
+	let fontSize = getResponsiveFontSize(text, {
+		fontFamily: 'Rajdhani',
+		fontWeight: '700',
+		tracking,
+		availableWidth: defaultWordmarkWidth,
+		targetFillRatio: 1,
+		maxFontSize: 130,
+		minFontSize: 12,
+		maxTextHeight: 70
+	});
+
+	let wordmarkBounds = getTextVerticalBounds(text, fontSize, baselineY + fontSize);
+	let secondaryLayout = getSecondaryLayout(
+		secondaryGraphicImage,
+		wordmarkBounds.top,
+		wordmarkBounds.bottom
+	);
+
 	const wordmarkRight = secondaryGraphicImage
 		? Math.min(defaultWordmarkRight, secondaryLayout.drawX - 10)
 		: defaultWordmarkRight;
 	const wordmarkWidth = Math.max(100, wordmarkRight - wordmarkLeft);
 
-	const tracking = text.length > 20 ? 1 : 3;
-	const fontSize = getResponsiveFontSize(text, {
+	fontSize = getResponsiveFontSize(text, {
 		fontFamily: 'Rajdhani',
 		fontWeight: '700',
 		tracking,
@@ -438,7 +472,14 @@ async function renderGraphic() {
 		maxTextHeight: 70
 	});
 
-	const baselineY = 220 + fontSize;
+	const finalBaselineY = baselineY + fontSize;
+	wordmarkBounds = getTextVerticalBounds(text, fontSize, finalBaselineY);
+	secondaryLayout = getSecondaryLayout(
+		secondaryGraphicImage,
+		wordmarkBounds.top,
+		wordmarkBounds.bottom
+	);
+
 	const textColor = isWhiteVersion ? '#FFFFFF' : '#001871';
 
 	ctx.fillStyle = textColor;
@@ -448,7 +489,7 @@ async function renderGraphic() {
 	ctx.miterLimit = 2;
 	ctx.font = `700 ${fontSize}px Rajdhani`;
 
-	drawTrackedText(text, wordmarkLeft, baselineY, tracking);
+	drawTrackedText(text, wordmarkLeft, finalBaselineY, tracking);
 
 	if (secondaryGraphicImage) {
 		ctx.drawImage(

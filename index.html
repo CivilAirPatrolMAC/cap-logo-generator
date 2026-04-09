@@ -52,6 +52,14 @@
 		<option value="white" disabled>All White (temporarily disabled because Roman broke it and it's 4 in the morning)</option>
 	</select>
 
+	<label for="emblemSelect">Directorates, Programs, and Campaigns</label>
+	<div class="subtle-warning" aria-live="polite">
+		To have your directorate, program, or campaign added, email a high-quality approved PNG to <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+	</div>
+	<select id="emblemSelect">
+		<option value="">None</option>
+	</select>
+	
 	<label for="emblemSelect">Region, Wing, Group, and Squadron Emblems</label>
 	<div class="subtle-warning" aria-live="polite">
 		To have your secondary emblem added, email a high-quality approved PNG to <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
@@ -60,15 +68,16 @@
 		<option value="">None</option>
 	</select>
 	
-	<label for="ncsaSelect">NCSA Emblems</label>
+	<label for="ncsaSelect">NCSA,CSA, and NFA Emblems</label>
 	<div class="subtle-warning" aria-live="polite">
-		To have your NCSA emblem added, email a high-quality approved PNG to <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+		To have your NCSA, CSA, or NFA emblem added, email a high-quality approved PNG to <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
 	</div>
 	<select id="ncsaSelect">
   	<option value="">None</option>
 	</select>
 
 
+<!--
 	<label for="secondaryGraphic">Upload your own secondary graphic</label>
 	<div class="subtle-warning" aria-live="polite">
 		Only use approved emblematics
@@ -80,7 +89,7 @@
 			type="file"
 			accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
 		>
-
+-->
 		<label for="secondaryGraphicTransparency" class="checkbox-label">
 			<input type="checkbox" id="secondaryGraphicTransparency">
 			Attempt to make the white background of your uploaded image transparent

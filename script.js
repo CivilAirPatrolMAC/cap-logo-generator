@@ -449,16 +449,14 @@ const renderGraphic = async () => {
 	const secondaryLayout = getSecondaryLayout(secondaryGraphicImage);
 
 	const canvasWidth = BASE_WIDTH + secondaryLayout.extraWidth;
-	const canvasHeight = BASE_HEIGHT;
+const canvasHeight = BASE_HEIGHT;
 
-	const baselineY = 270;
+const capBlue = '#001871';
+const white = '#FFFFFF';
 
-	const capBlue = '#001871';
-	const white = '#FFFFFF';
-
-	const fontFamily = 'Rajdhani';
-	const fontWeight = '700';
-	const tracking = 3;
+const fontFamily = 'Rajdhani';
+const fontWeight = '700';
+const tracking = 3;
 
 	canvas.width = canvasWidth;
 	canvas.height = canvasHeight;
@@ -496,7 +494,7 @@ const renderGraphic = async () => {
 		minFontSize: 50,
 		maxTextHeight: 70
 	});
-
+	const baselineY = 240 + fontSize;
 	const textColor = isWhiteVersion ? white : capBlue;
 
 	ctx.fillStyle = textColor;

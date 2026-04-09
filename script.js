@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 	const downloadButton = document.getElementById('download');
 
 	populateEmblemSelect();
+	updateCharCounter(subordinateTextInput?.value || '');
 
 	try {
 		await loadFont();
@@ -115,7 +116,7 @@ function initializeSearchableDropdown() {
 		placeholder: 'Search emblems...',
 		maxOptions: 500,
 		searchField: ['text'],
-		optgroupField: 'optgroup',
+		optgroupField: 'optgroup'
 	});
 }
 
@@ -291,7 +292,21 @@ function handleSubordinateTextInput(event) {
 		input.value = input.value.slice(0, MAX_TEXT_LENGTH);
 	}
 
+	updateCharCounter(input.value);
 	renderGraphic();
+}
+
+function updateCharCounter(text) {
+	const counter = document.getElementById('charCounter');
+	if (!counter) return;
+
+	counter.textContent = `${text.length} / ${MAX_TEXT_LENGTH}`;
+
+	if (text.length >= MAX_TEXT_LENGTH) {
+		counter.style.color = 'red';
+	} else {
+		counter.style.color = '';
+	}
 }
 
 function measureTrackedText(text, tracking) {

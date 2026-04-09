@@ -9,7 +9,7 @@ let secondaryGraphicOriginalUpload = null;
 const BASE_WIDTH = 2000;
 const BASE_HEIGHT = 415;
 const SECONDARY_PADDING_LEFT = 35;
-const SECONDARY_PADDING_RIGHT = 35;
+const SECONDARY_PADDING_RIGHT = 10;
 
 let baseLogoLayout = {
 	drawX: 0,

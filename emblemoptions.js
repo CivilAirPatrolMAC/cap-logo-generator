@@ -14,7 +14,7 @@ export const emblemOptions = [
 	{ value: 'MOTS', label: 'Medical Orientation & Training School', type: 'NCSA', path: 'ncsa/mots.png', available: true },
 
 	//Directorates
-	{ value: 'CadetPrograms', label: 'Cadet Programs', type: 'directorate', path: 'directorate/cadetprograms/.png', available: true },
+	{ value: 'CadetPrograms', label: 'Cadet Programs', type: 'directorate', path: 'directorate/cadetprograms.png', available: true },
 
 	
 	// Wings

@@ -367,77 +367,9 @@ function getResponsiveFontSize(text, options) {
 	);
 }
 
-function getTextVerticalBounds(text, fontSize, baselineY) {
-	ctx.font = `700 ${fontSize}px Rajdhani`;
-	const metrics = ctx.measureText(text || 'H');
-
-	const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.8;
-	const descent = metrics.actualBoundingBoxDescent || fontSize * 0.2;
-
-	return {
-		top: baselineY - ascent,
-		bottom: baselineY + descent,
-		height: ascent + descent
-	};
-}
-
-function getVisibleImageBounds(img) {
-	const { tempCanvas, tempCtx } = createCanvasFromImage(img);
-	const { width, height } = tempCanvas;
-	const imageData = tempCtx.getImageData(0, 0, width, height);
-	const data = imageData.data;
-
-	let top = height;
-	let bottom = -1;
-	let left = width;
-	let right = -1;
-
-	for (let y = 0; y < height; y++) {
-		for (let x = 0; x < width; x++) {
-			const i = (y * width + x) * 4;
-			const r = data[i];
-			const g = data[i + 1];
-			const b = data[i + 2];
-			const a = data[i + 3];
-
-			const isVisible = a > 10 && !(r > 250 && g > 250 && b > 250);
-			if (!isVisible) continue;
-
-			if (x < left) left = x;
-			if (x > right) right = x;
-			if (y < top) top = y;
-			if (y > bottom) bottom = y;
-		}
-	}
-
-	if (right === -1 || bottom === -1) {
-		return {
-			left: 0,
-			top: 0,
-			right: width - 1,
-			bottom: height - 1,
-			width,
-			height
-		};
-	}
-
-	return {
-		left,
-		top,
-		right,
-		bottom,
-		width: right - left + 1,
-		height: bottom - top + 1
-	};
-}
-
-function getSecondaryLayout(img, wordmarkTop, wordmarkBottom) {
+function getSecondaryLayout(img) {
 	if (!img) {
 		return {
-			sourceX: 0,
-			sourceY: 0,
-			sourceWidth: 0,
-			sourceHeight: 0,
 			drawX: 0,
 			drawY: 0,
 			drawWidth: 0,
@@ -445,29 +377,18 @@ function getSecondaryLayout(img, wordmarkTop, wordmarkBottom) {
 		};
 	}
 
-	const visibleBounds = getVisibleImageBounds(img);
-	const maxVisibleHeight = Math.max(1, wordmarkBottom - wordmarkTop);
-	const scale = maxVisibleHeight / visibleBounds.height;
-
-	const drawWidth = visibleBounds.width * scale;
-	const drawHeight = visibleBounds.height * scale;
+	const maxHeight = BASE_HEIGHT - 30;
+	const scale = maxHeight / img.height;
+	const drawWidth = img.width * scale;
+	const drawHeight = img.height * scale;
 	const drawX =
 		BASE_WIDTH -
 		SECONDARY_PADDING_RIGHT -
 		drawWidth -
 		SECONDARY_GRAPHIC_OFFSET_LEFT;
-	const drawY = wordmarkTop + (maxVisibleHeight - drawHeight) / 2;
+	const drawY = (BASE_HEIGHT - drawHeight) / 2;
 
-	return {
-		sourceX: visibleBounds.left,
-		sourceY: visibleBounds.top,
-		sourceWidth: visibleBounds.width,
-		sourceHeight: visibleBounds.height,
-		drawX,
-		drawY,
-		drawWidth,
-		drawHeight
-	};
+	return { drawX, drawY, drawWidth, drawHeight };
 }
 
 async function renderGraphic() {
@@ -483,6 +404,7 @@ async function renderGraphic() {
 
 	const isWhiteVersion = selectedStyle === 'white';
 	const logoFile = isWhiteVersion ? 'WhiteLogo.png' : 'BlueLogo.png';
+	const secondaryLayout = getSecondaryLayout(secondaryGraphicImage);
 
 	canvas.width = BASE_WIDTH;
 	canvas.height = BASE_HEIGHT;
@@ -499,35 +421,13 @@ async function renderGraphic() {
 
 	const wordmarkLeft = 380;
 	const defaultWordmarkRight = 1125;
-	const defaultWordmarkWidth = defaultWordmarkRight - wordmarkLeft;
-	const tracking = text.length > 20 ? 1 : 3;
-	const baselineAnchorY = 220;
-
-	let fontSize = getResponsiveFontSize(text, {
-		fontFamily: 'Rajdhani',
-		fontWeight: '700',
-		tracking,
-		availableWidth: defaultWordmarkWidth,
-		targetFillRatio: 1,
-		maxFontSize: 130,
-		minFontSize: 12,
-		maxTextHeight: 70
-	});
-
-	let baselineY = baselineAnchorY + fontSize;
-	let wordmarkBounds = getTextVerticalBounds(text, fontSize, baselineY);
-	let secondaryLayout = getSecondaryLayout(
-		secondaryGraphicImage,
-		wordmarkBounds.top,
-		wordmarkBounds.bottom
-	);
-
 	const wordmarkRight = secondaryGraphicImage
 		? Math.min(defaultWordmarkRight, secondaryLayout.drawX - 10)
 		: defaultWordmarkRight;
 	const wordmarkWidth = Math.max(100, wordmarkRight - wordmarkLeft);
 
-	fontSize = getResponsiveFontSize(text, {
+	const tracking = text.length > 20 ? 1 : 3;
+	const fontSize = getResponsiveFontSize(text, {
 		fontFamily: 'Rajdhani',
 		fontWeight: '700',
 		tracking,
@@ -538,14 +438,7 @@ async function renderGraphic() {
 		maxTextHeight: 70
 	});
 
-	baselineY = baselineAnchorY + fontSize;
-	wordmarkBounds = getTextVerticalBounds(text, fontSize, baselineY);
-	secondaryLayout = getSecondaryLayout(
-		secondaryGraphicImage,
-		wordmarkBounds.top,
-		wordmarkBounds.bottom
-	);
-
+	const baselineY = 220 + fontSize;
 	const textColor = isWhiteVersion ? '#FFFFFF' : '#001871';
 
 	ctx.fillStyle = textColor;
@@ -560,10 +453,6 @@ async function renderGraphic() {
 	if (secondaryGraphicImage) {
 		ctx.drawImage(
 			secondaryGraphicImage,
-			secondaryLayout.sourceX,
-			secondaryLayout.sourceY,
-			secondaryLayout.sourceWidth,
-			secondaryLayout.sourceHeight,
 			secondaryLayout.drawX,
 			secondaryLayout.drawY,
 			secondaryLayout.drawWidth,

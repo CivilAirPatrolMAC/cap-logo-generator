@@ -15,11 +15,15 @@ const SUBORDINATE_TARGET_FILL_RATIO = 0.985;
 const SUBORDINATE_MAX_TEXT_HEIGHT = 70;
 
 // Secondary emblem tuning
-const SECONDARY_MAX_HEIGHT_RATIO = 0.92;
-const SECONDARY_MAX_WIDTH = 240;
+const SECONDARY_BLOCK_HEIGHT_RATIO = 0.96;
+const SECONDARY_MAX_WIDTH = 420;
 const VISIBLE_BOUNDS_ALPHA_THRESHOLD = 16;
 const VISIBLE_BOUNDS_WHITE_THRESHOLD = 245;
 const VISIBLE_BOUNDS_PADDING = 2;
+
+// CAP wordmark block tuning
+const PRIMARY_BLOCK_TOP = 58;
+const PRIMARY_BLOCK_BOTTOM = 190;
 
 let canvas;
 let ctx;
@@ -467,7 +471,7 @@ function getVisibleImageBounds(img) {
 	};
 }
 
-function getSecondaryLayout(img, wordmarkTop, wordmarkBottom) {
+function getSecondaryLayout(img, blockTop, blockBottom) {
 	if (!img) {
 		return {
 			sourceX: 0,
@@ -483,8 +487,8 @@ function getSecondaryLayout(img, wordmarkTop, wordmarkBottom) {
 
 	const visibleBounds = getVisibleImageBounds(img);
 
-	const wordmarkHeight = Math.max(1, wordmarkBottom - wordmarkTop);
-	const maxVisibleHeight = Math.max(1, wordmarkHeight * SECONDARY_MAX_HEIGHT_RATIO);
+	const blockHeight = Math.max(1, blockBottom - blockTop);
+	const maxVisibleHeight = blockHeight * SECONDARY_BLOCK_HEIGHT_RATIO;
 	const maxVisibleWidth = SECONDARY_MAX_WIDTH;
 
 	const heightScale = maxVisibleHeight / visibleBounds.height;
@@ -500,7 +504,7 @@ function getSecondaryLayout(img, wordmarkTop, wordmarkBottom) {
 		drawWidth -
 		SECONDARY_GRAPHIC_OFFSET_LEFT;
 
-	const drawY = wordmarkTop + (wordmarkHeight - drawHeight) / 2;
+	const drawY = blockTop + (blockHeight - drawHeight) / 2;
 
 	return {
 		sourceX: visibleBounds.left,
@@ -557,11 +561,15 @@ async function renderGraphic() {
 	});
 
 	let baselineY = baselineAnchorY + fontSize;
-	let wordmarkBounds = getTextVerticalBounds(text, fontSize, baselineY);
+	let subordinateBounds = getTextVerticalBounds(text, fontSize, baselineY);
+
+	let blockTop = PRIMARY_BLOCK_TOP;
+	let blockBottom = Math.max(PRIMARY_BLOCK_BOTTOM, subordinateBounds.bottom);
+
 	let secondaryLayout = getSecondaryLayout(
 		secondaryGraphicImage,
-		wordmarkBounds.top,
-		wordmarkBounds.bottom
+		blockTop,
+		blockBottom
 	);
 
 	const wordmarkRight = secondaryGraphicImage
@@ -581,11 +589,15 @@ async function renderGraphic() {
 	});
 
 	baselineY = baselineAnchorY + fontSize;
-	wordmarkBounds = getTextVerticalBounds(text, fontSize, baselineY);
+	subordinateBounds = getTextVerticalBounds(text, fontSize, baselineY);
+
+	blockTop = PRIMARY_BLOCK_TOP;
+	blockBottom = Math.max(PRIMARY_BLOCK_BOTTOM, subordinateBounds.bottom);
+
 	secondaryLayout = getSecondaryLayout(
 		secondaryGraphicImage,
-		wordmarkBounds.top,
-		wordmarkBounds.bottom
+		blockTop,
+		blockBottom
 	);
 
 	const textColor = isWhiteVersion ? '#FFFFFF' : '#001871';

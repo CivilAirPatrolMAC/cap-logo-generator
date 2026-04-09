@@ -37,7 +37,7 @@ export const emblemOptions = [
 	{ value: 'mississippi', label: 'Mississippi', type: 'Wing', path: '', available: false },
 	{ value: 'missouri', label: 'Missouri', type: 'Wing', path: '', available: false },
 	{ value: 'montana', label: 'Montana', type: 'Wing', path: '', available: false },
-	{ value: 'nationalcapital', label: 'National Capital', type: 'Wing', path: '', available: false },
+	{ value: 'national-capital', label: 'National Capital', type: 'Wing', path: '', available: false },
 	{ value: 'nebraska', label: 'Nebraska', type: 'Wing', path: '', available: false },
 	{ value: 'nevada', label: 'Nevada', type: 'Wing', path: '', available: false },
 	{ value: 'new-hampshire', label: 'New Hampshire', type: 'Wing', path: '', available: false },
@@ -74,7 +74,7 @@ export const emblemOptions = [
 
 	//Squadrons
 	{ value: 'TX388', label: 'SWR-TX-388', type: 'Squadron', path: '', available: false },
-	{ value: 'TX154', label: 'SWR-TX-154', type: 'Sqyadron', path: '', available: false }
+	{ value: 'TX154', label: 'SWR-TX-154', type: 'Squadron', path: '', available: false }
 
 
 ];

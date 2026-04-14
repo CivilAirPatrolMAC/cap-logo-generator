@@ -49,14 +49,13 @@ a {
   display: flex;
   gap: 10px;
   margin-top: 10px;
-	flex-wrap: wrap;
+  flex-wrap: wrap;
 }
 
 .tool-switcher button {
   padding: 8px 16px;
   font-size: 14px;
 
-  /* Override default button style */
   background-color: white;
   color: rgb(0, 20, 137);
   border: 2px solid rgb(0, 20, 137);
@@ -64,20 +63,14 @@ a {
   transition: all 0.2s ease-in-out;
 }
 
-/* Hover effect (what you want) */
 .tool-switcher button:hover {
   background-color: rgb(0, 20, 137);
   color: white;
 }
 
-/* Active page button */
 .tool-switcher button.active {
   background-color: rgb(0, 20, 137);
   color: white;
-}
-
-#toolSwitcher {
-  max-width: 320px;
 }
 
 h1 {

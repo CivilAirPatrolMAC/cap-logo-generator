@@ -50,7 +50,25 @@ a {
   gap: 10px;
   margin-top: 10px;
 	flex-wrap: wrap;
+}
 
+.tool-switcher button {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 2px solid rgb(0, 20, 137);
+  background: white;
+  color: rgb(0, 20, 137);
+  cursor: pointer;
+}
+
+.tool-switcher button.active {
+  border-color: rgb(0, 12, 92);
+  background-color: rgb(0, 14, 102);
+}
+
+#toolSwitcher {
+  max-width: 320px;
+}
 
 h1 {
 	margin: 0 0 10px;

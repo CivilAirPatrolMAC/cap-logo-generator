@@ -17,114 +17,118 @@
 	<script type="module" src="script.js"></script>
 </head>
 <body>
-	<h1>
-		Civil Air Patrol Subordinate Graphic Generator
-	</h1>
-	<p>
-		This tool allows Civil Air Patrol members to generate compliant logos in accordance with CAP branding guidelines. Follow the steps below to create a professional, standardized logo for your unit, directorate, Special activity, or project.
-	</p>
+	<div class="app-shell">
+		<header class="page-header">
+			<h1>Civil Air Patrol Subordinate Graphic Generator</h1>
+			<p class="page-intro">
+				This tool allows Civil Air Patrol members to generate compliant logos in accordance with CAP branding guidelines.
+				Use the controls on the left to build your subordinate graphic and review the live preview before downloading.
+			</p>
+		</header>
 
-<br>
-	
- <h4>Step 1: Enter the subordinate entity, or directorate's name</h4>
-  <p>
-    Input your directorate, program, region, wing, group, squadron, or activity name as you want it to appear.
-    Be sure spelling, capitalization, and abbreviations match official Civil Air Patrol naming conventions.
-  </p>
-	<label for="subordinateText">Subordinate line</label>
-	<input
-		id="subordinateText"
-		type="text"
-		maxlength="50"
-		placeholder="Insert Subordinate Text"
-		value="Marketing & Communication"
-	>
-	<div id="charCounter">50 characters remaining</div>
-<br>
-	<h4>Step 2: Choose Colors and Style</h4>
- <p>
-  Select between the available color options: an all-blue or all-white version of the logo.
-  These simplified options are designed to maintain consistency and ensure clear visibility
-  across different backgrounds and use cases.
-</p>
-<p>
-  Use the blue version for light backgrounds and the white version for dark backgrounds to
-  maintain strong contrast and readability.
-</p>
-	<br>
-	<label for="logoStyle">Logo version</label>
-	<select id="logoStyle">
-		<option value="blue" selected>All Blue</option>
-		<option value="white" disabled>All White (temporarily disabled)</option>
-	</select>
+		<main class="generator-layout">
+			<section class="controls-panel">
+				<div class="panel-section">
+					<h2>Details</h2>
+					<p>
+						Enter the subordinate entity or directorate name exactly as it should appear. Be sure spelling,
+						capitalization, and abbreviations match official Civil Air Patrol naming conventions.
+					</p>
 
-	<label for="directorateSelect">Commands, Directorates, Programs, and Campaigns</label>
-	<div class="subtle-warning" aria-live="polite">
-		To have your directorate, program, or campaign added, email a high-quality approved PNG to <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+					<label for="subordinateText">Subordinate line</label>
+					<input
+						id="subordinateText"
+						type="text"
+						maxlength="50"
+						placeholder="Insert Subordinate Text"
+						value="Marketing & Communication"
+					>
+					<div id="charCounter">50 characters remaining</div>
+				</div>
+
+				<div class="panel-section">
+					<h2>Options</h2>
+					<p>
+						Select the appropriate logo version and choose a secondary emblem or upload an approved graphic.
+					</p>
+
+					<label for="logoStyle">Logo version</label>
+					<select id="logoStyle">
+						<option value="blue" selected>All Blue</option>
+						<option value="white" disabled>All White (temporarily disabled)</option>
+					</select>
+
+					<label for="directorateSelect">Commands, Directorates, Programs, and Campaigns</label>
+					<div class="subtle-warning" aria-live="polite">
+						To have your directorate, program, or campaign added, email a high-quality approved PNG to
+						<a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+					</div>
+					<select id="directorateSelect">
+						<option value="">None</option>
+					</select>
+
+					<label for="emblemSelect">Region, Wing, Group, and Squadron Emblems</label>
+					<div class="subtle-warning" aria-live="polite">
+						To have your secondary emblem added, email a high-quality approved PNG to
+						<a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+					</div>
+					<select id="emblemSelect">
+						<option value="">None</option>
+					</select>
+
+					<label for="ncsaSelect">NCSA, CSA, and NFA Emblems</label>
+					<div class="subtle-warning" aria-live="polite">
+						To have your NCSA, CSA, or NFA emblem added, email a high-quality approved PNG to
+						<a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+					</div>
+					<select id="ncsaSelect">
+						<option value="">None</option>
+					</select>
+
+					<label for="secondaryGraphic">Upload your own secondary graphic</label>
+					<div class="subtle-warning" aria-live="polite">
+						Only use approved emblematics.
+					</div>
+
+					<div class="secondary-graphic-row">
+						<input
+							id="secondaryGraphic"
+							type="file"
+							accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+						>
+						<label for="secondaryGraphicTransparency" class="checkbox-label">
+							<input type="checkbox" id="secondaryGraphicTransparency">
+							Attempt to make the white background of your uploaded image transparent
+						</label>
+					</div>
+				</div>
+			</section>
+
+			<aside class="preview-panel">
+				<div class="preview-card">
+					<div class="preview-header">
+						<h2>Live Preview</h2>
+						<p>
+							Review spacing, alignment, readability, and overall balance before downloading.
+						</p>
+					</div>
+
+					<div class="canvas-container">
+						<canvas id="canvas" width="1000" height="415"></canvas>
+					</div>
+
+					<div class="button-row preview-actions">
+						<button id="download" type="button">Download</button>
+						<button id="clearSecondaryGraphic" type="button">Clear Secondary Graphic</button>
+					</div>
+				</div>
+			</aside>
+		</main>
+
+		<footer>
+			Version 41. Last modified on April 13th, 2026. Managed by
+			<a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+		</footer>
 	</div>
-	<select id="directorateSelect">
-		<option value="">None</option>
-	</select>
-	
-	<label for="emblemSelect">Region, Wing, Group, and Squadron Emblems</label>
-	<div class="subtle-warning" aria-live="polite">
-		To have your secondary emblem added, email a high-quality approved PNG to <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
-	</div>
-	<select id="emblemSelect">
-		<option value="">None</option>
-	</select>
-	
-	<label for="ncsaSelect">NCSA,CSA, and NFA Emblems</label>
-	<div class="subtle-warning" aria-live="polite">
-		To have your NCSA, CSA, or NFA emblem added, email a high-quality approved PNG to <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
-	</div>
-	<select id="ncsaSelect">
-  	<option value="">None</option>
-	</select>
-
-
-	<label for="secondaryGraphic">Upload your own secondary graphic</label>
-	<div class="subtle-warning" aria-live="polite">
-		Only use approved emblematics
-	</div>
-
-	<div class="secondary-graphic-row">
-		<input
-			id="secondaryGraphic"
-			type="file"
-			accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-		>
-		<label for="secondaryGraphicTransparency" class="checkbox-label">
-			<input type="checkbox" id="secondaryGraphicTransparency">
-			Attempt to make the white background of your uploaded image transparent
-		</label>
-	</div>
-		<br>
- <h4>Step 3: Review the Preview</h4>
-  <p>
-    Before downloading, examine the preview for spacing, alignment, readability, and overall balance.
-    Make sure the design still looks clear when viewed at smaller sizes.
-  </p>
-	
-	<div class="canvas-container">
-		<canvas id="canvas" width="1000" height="415"></canvas>
-	</div>
-
-<h4>Step 4: Download Your Finished File</h4>
-  <p>
-    Once you are satisfied with the design, download the logo in the available file format.
-    Use the format most appropriate for your intended purpose, whether digital display,
-    printing, or further graphic design work.
-  </p>
-	
-	<div class="button-row">
-		<button id="download" type="button">Download</button>
-		<button id="clearSecondaryGraphic" type="button">Clear Secondary Graphic</button>
-	</div>
-
-	<footer>
-		Version 41. Last modified on April 13th, 2026. Managed by <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
-	</footer>
-
 </body>
 </html>

@@ -1,147 +1,207 @@
 <!doctype html>
 <html lang="en">
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<title>Civil Air Patrol Subordinate Graphic Generator</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Civil Air Patrol Subordinate Graphic Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<link rel="shortcut icon" href="favicon.png">
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500&display=block" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css">
-	<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
-	<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-
-	<script type="module" src="script.js"></script>
+  <link rel="shortcut icon" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="styles.css">
+  <link
+    href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css"
+    rel="stylesheet"
+  >
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <script type="module" src="script.js"></script>
 </head>
 <body>
-	<div class="app-shell">
-		<header class="page-header">
-			
-			<div class="tool-switcher">
-  <button class="active" onclick="window.location.href='https://cap-logo-generator.netlify.app/'">
-    Subordinate Entity Graphic Generator
-  </button>
+  <main class="app-shell">
+    <header class="page-header">
+      <div class="page-header__inner">
+        <div class="page-header__content">
+          <p class="eyebrow">Civil Air Patrol Brand Tools</p>
+          <h1>Civil Air Patrol Subordinate Graphic Generator</h1>
+          <p class="lede">
+            Create compliant subordinate entity graphics in accordance with CAP branding guidance.
+            Use the controls below to build your graphic and review the live preview before downloading.
+          </p>
+        </div>
 
-  <button onclick="window.location.href='https://cap-signature-generator.netlify.app/'">
-    Email Signature Block Generator
-  </button>
+        <nav class="tool-switcher" aria-label="Tool navigation">
+          <button
+            type="button"
+            class="active"
+            onclick="window.location.href='https://cap-logo-generator.netlify.app/'"
+          >
+            Subordinate Entity Graphic Generator
+          </button>
 
-			</br>
-				
-</div>
-			<h1>Civil Air Patrol Subordinate Graphic Generator</h1>
-			<p class="page-intro">
-				This tool allows Civil Air Patrol members to generate compliant logos in accordance with CAP branding guidelines.
-				Use the controls on the left to build your subordinate graphic and review the live preview before downloading.
-			</p>
-		</header>
+          <button
+            type="button"
+            onclick="window.location.href='https://cap-signature-generator.netlify.app/'"
+          >
+            Email Signature Block Generator
+          </button>
+        </nav>
+      </div>
+    </header>
 
-		<main class="generator-layout">
-			<section class="controls-panel">
-				<div class="panel-section">
-					<h2>Details</h2>
-					<p>
-						Enter the subordinate entity or directorate name exactly as it should appear. Be sure spelling,
-						capitalization, and abbreviations match official Civil Air Patrol naming conventions.
-					</p>
+    <section class="layout">
+      <div class="controls-column">
+        <section class="card guidance-card">
+          <div class="section-heading">
+            <h2>Graphic Guidance</h2>
+            <p>
+              This tool allows Civil Air Patrol members to generate compliant subordinate graphics
+              using approved branding elements, naming conventions, and secondary emblematics.
+            </p>
+          </div>
 
-					<label for="subordinateText">Subordinate line</label>
-					<input
-						id="subordinateText"
-						type="text"
-						maxlength="50"
-						placeholder="Insert Subordinate Text"
-						value="Marketing & Communication"
-					>
-					<div id="charCounter">50 characters remaining</div>
-				</div>
+          <div class="callout callout--warning">
+            <h3>Before you generate</h3>
+            <ul>
+              <li>Use official subordinate naming conventions and approved abbreviations.</li>
+              <li>Only use approved secondary graphics and emblematics.</li>
+              <li>Review spacing, readability, and balance before downloading.</li>
+              <li>Use the correct logo color version for the intended background.</li>
+            </ul>
+          </div>
+        </section>
 
-				<div class="panel-section">
-					<h2>Options</h2>
-					<p>
-						Select the appropriate logo version and choose a secondary emblem or upload an approved graphic.
-					</p>
+        <form class="card form-card" autocomplete="off">
+          <section class="form-section">
+            <div class="section-heading">
+              <h2>Details</h2>
+              <p>
+                Enter the subordinate entity or directorate name exactly as it should appear.
+              </p>
+            </div>
 
-					<label for="logoStyle">Logo version</label>
-					<select id="logoStyle">
-						<option value="blue" selected>All Blue</option>
-						<option value="white">All White</option>
-					</select>
+            <div class="field">
+              <label for="subordinateText">Subordinate line</label>
+              <input
+                id="subordinateText"
+                type="text"
+                maxlength="50"
+                placeholder="Insert Subordinate Text"
+                value="Marketing & Communication"
+              >
+              <div id="charCounter" class="field-help">50 characters remaining</div>
+            </div>
+          </section>
 
-					<label for="directorateSelect">Commands, Directorates, Programs, and Campaigns</label>
-					<div class="subtle-warning" aria-live="polite">
-						To have your directorate, program, or campaign added, email a high-quality approved PNG to
-						<a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
-					</div>
-					<select id="directorateSelect">
-						<option value="">None</option>
-					</select>
+          <section class="form-section">
+            <div class="section-heading">
+              <h2>Options</h2>
+              <p>
+                Select the appropriate logo version and choose a secondary emblem or upload an approved graphic.
+              </p>
+            </div>
 
-					<label for="emblemSelect">Region, Wing, Group, and Squadron Emblems</label>
-					<div class="subtle-warning" aria-live="polite">
-						To have your secondary emblem added, email a high-quality approved PNG to
-						<a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
-					</div>
-					<select id="emblemSelect">
-						<option value="">None</option>
-					</select>
+            <div class="field">
+              <label for="logoStyle">Logo version</label>
+              <select id="logoStyle">
+                <option value="blue" selected>All Blue</option>
+                <option value="white">All White</option>
+              </select>
+            </div>
 
-					<label for="ncsaSelect">NCSA, CSA, and NFA Emblems</label>
-					<div class="subtle-warning" aria-live="polite">
-						To have your NCSA, CSA, or NFA emblem added, email a high-quality approved PNG to
-						<a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
-					</div>
-					<select id="ncsaSelect">
-						<option value="">None</option>
-					</select>
+            <div class="field">
+              <label for="directorateSelect">Commands, Directorates, Programs, and Campaigns</label>
+              <div class="subtle-warning" aria-live="polite">
+                To have your directorate, program, or campaign added, email a high-quality approved PNG to
+                <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+              </div>
+              <select id="directorateSelect">
+                <option value="">None</option>
+              </select>
+            </div>
 
-					<label for="secondaryGraphic">Upload your own secondary graphic</label>
-					<div class="subtle-warning" aria-live="polite">
-						Only use approved emblematics.
-					</div>
+            <div class="field">
+              <label for="emblemSelect">Region, Wing, Group, and Squadron Emblems</label>
+              <div class="subtle-warning" aria-live="polite">
+                To have your secondary emblem added, email a high-quality approved PNG to
+                <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+              </div>
+              <select id="emblemSelect">
+                <option value="">None</option>
+              </select>
+            </div>
 
-					<div class="secondary-graphic-row">
-						<input
-							id="secondaryGraphic"
-							type="file"
-							accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
-						>
-						<label for="secondaryGraphicTransparency" class="checkbox-label">
-							<input type="checkbox" id="secondaryGraphicTransparency">
-							Attempt to make the white background of your uploaded image transparent
-						</label>
-					</div>
-				</div>
-			</section>
+            <div class="field">
+              <label for="ncsaSelect">NCSA, CSA, and NFA Emblems</label>
+              <div class="subtle-warning" aria-live="polite">
+                To have your NCSA, CSA, or NFA emblem added, email a high-quality approved PNG to
+                <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+              </div>
+              <select id="ncsaSelect">
+                <option value="">None</option>
+              </select>
+            </div>
 
-			<aside class="preview-panel">
-				<div class="preview-card">
-					<div class="preview-header">
-						<h2>Live Preview</h2>
-						<p>
-							Review spacing, alignment, readability, and overall balance before downloading.
-						</p>
-					</div>
+            <div class="field">
+              <label for="secondaryGraphic">Upload your own secondary graphic</label>
+              <div class="subtle-warning" aria-live="polite">
+                Only use approved emblematics.
+              </div>
 
-					<div class="canvas-container">
-						<canvas id="canvas" width="1000" height="415"></canvas>
-					</div>
+              <div class="upload-stack">
+                <input
+                  id="secondaryGraphic"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                >
 
-					<div class="button-row preview-actions">
-						<button id="download" type="button">Download</button>
-						<button id="clearSecondaryGraphic" type="button">Clear Secondary Graphic</button>
-					</div>
-				</div>
-			</aside>
-		</main>
+                <label for="secondaryGraphicTransparency" class="checkbox-label">
+                  <input type="checkbox" id="secondaryGraphicTransparency">
+                  <span>Attempt to make the white background of your uploaded image transparent</span>
+                </label>
+              </div>
+            </div>
+          </section>
+        </form>
 
-		<footer>
-			Version 45. Last modified on April 14th, 2026. Managed by
-			<a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
-		</footer>
-	</div>
+        <footer class="page-footer">
+          Version 45. Last modified on April 14th, 2026. Managed by
+          <a href="mailto:brand@cap.gov">Maj. Roman Vitanza</a>.
+        </footer>
+      </div>
+
+      <aside class="preview-column">
+        <div class="preview-sticky">
+          <section class="card preview-card">
+            <div class="preview-card__header">
+              <div class="preview-card__title">
+                <h2>Live Preview</h2>
+                <p>
+                  Review spacing, alignment, readability, and overall balance before downloading.
+                </p>
+              </div>
+            </div>
+
+            <div class="preview-surface">
+              <div class="canvas-frame">
+                <canvas id="canvas" width="1000" height="415"></canvas>
+              </div>
+            </div>
+
+            <div class="button-row preview-actions">
+              <button id="download" type="button" class="button button--primary">Download</button>
+              <button id="clearSecondaryGraphic" type="button" class="button button--secondary">
+                Clear Secondary Graphic
+              </button>
+            </div>
+          </section>
+        </div>
+      </aside>
+    </section>
+  </main>
 </body>
 </html>

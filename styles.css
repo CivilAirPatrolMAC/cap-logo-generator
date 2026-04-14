@@ -49,6 +49,7 @@ a {
   display: flex;
   gap: 10px;
   margin-top: 10px;
+	flex-wrap: wrap;
 }
 
 .tool-switcher button {
@@ -61,8 +62,8 @@ a {
 }
 
 .tool-switcher button.active {
-  background: rgb(0, 20, 137);
-  color: white;
+  border-color: rgb(0, 12, 92);
+  background-color: rgb(0, 14, 102);
 }
 
 #toolSwitcher {

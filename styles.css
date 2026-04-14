@@ -45,11 +45,24 @@ a {
 	color: rgb(0, 20, 137);
 }
 
-.page-header {
+.tool-switcher {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.tool-switcher button {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 2px solid rgb(0, 20, 137);
+  background: white;
+  color: rgb(0, 20, 137);
+  cursor: pointer;
+}
+
+.tool-switcher button.active {
+  background: rgb(0, 20, 137);
+  color: white;
 }
 
 #toolSwitcher {

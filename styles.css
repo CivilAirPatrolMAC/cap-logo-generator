@@ -54,16 +54,26 @@ a {
 
 .tool-switcher button {
   padding: 8px 16px;
-  border-radius: 20px;
-  border: 2px solid rgb(0, 20, 137);
-  background: white;
+  font-size: 14px;
+
+  /* Override default button style */
+  background-color: white;
   color: rgb(0, 20, 137);
-  cursor: pointer;
+  border: 2px solid rgb(0, 20, 137);
+
+  transition: all 0.2s ease-in-out;
 }
 
+/* Hover effect (what you want) */
+.tool-switcher button:hover {
+  background-color: rgb(0, 20, 137);
+  color: white;
+}
+
+/* Active page button */
 .tool-switcher button.active {
-  border-color: rgb(0, 12, 92);
-  background-color: rgb(0, 14, 102);
+  background-color: rgb(0, 20, 137);
+  color: white;
 }
 
 #toolSwitcher {

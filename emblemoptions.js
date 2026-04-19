@@ -28,7 +28,7 @@ export const emblemOptions = [
 	{ value: 'connecticut', label: 'Connecticut', type: 'Wing', path: '', available: false },
 	{ value: 'delaware', label: 'Delaware', type: 'Wing', path: '', available: false },
 	{ value: 'florida', label: 'Florida', type: 'Wing', path: '', available: false },
-	{ value: 'georgia', label: 'Georgia', type: 'Wing', path: '', available: false },
+	{ value: 'georgia', label: 'Georgia', type: 'Wing', path: 'wing/gaemblem.png', available: true },
 	{ value: 'hawaii', label: 'Hawaii', type: 'Wing', path: '', available: false },
 	{ value: 'idaho', label: 'Idaho', type: 'Wing', path: '', available: false },
 	{ value: 'illinois', label: 'Illinois', type: 'Wing', path: '', available: false },

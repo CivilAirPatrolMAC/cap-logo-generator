@@ -29,7 +29,7 @@
   --radius-lg: 24px;
   --pill: 999px;
 
-  --max-width: 1360px;
+  --max-width: 1500px;
   --transition: 0.18s ease;
 }
 
@@ -161,8 +161,8 @@ button {
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.95fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
+  gap: 2rem;
   align-items: start;
 }
 
@@ -174,6 +174,7 @@ button {
 .controls-column {
   display: grid;
   gap: 1rem;
+  min-height: 0;
 }
 
 .preview-sticky {
@@ -245,13 +246,17 @@ button {
 /* Form */
 
 .form-card {
-  overflow: hidden;
+  overflow: visible;
   padding: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .form-section {
   padding: 1.25rem;
   border-bottom: 1px solid var(--border);
+  overflow: visible;
+  position: relative;
 }
 
 .form-section:last-child {
@@ -261,6 +266,7 @@ button {
 .field {
   display: grid;
   gap: 0.55rem;
+  overflow: visible;
 }
 
 label {
@@ -480,6 +486,8 @@ button:hover:not(:disabled),
 
 .ts-wrapper {
   max-width: 100%;
+  position: relative;
+  z-index: 20;
 }
 
 .ts-control {
@@ -498,7 +506,16 @@ button:hover:not(:disabled),
 .ts-dropdown {
   border-radius: 12px !important;
   border-color: var(--border-strong) !important;
-  overflow: hidden;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  max-height: 360px !important;
+  z-index: 9999 !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16) !important;
+}
+
+.ts-dropdown .option {
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* Footer */

@@ -84,7 +84,7 @@ export const emblemOptions = [
 	{ value: 'TX388', label: 'SWR-TX-388', type: 'Squadron', path: 'squadron/tx388emblem.png', available: true },
 	{ value: 'TX154', label: 'SWR-TX-154', type: 'Squadron', path: 'squadron/tx154emblem.png', available: true },
 	{ value: 'TX076', label: 'SWR-TX-076', type: 'Squadron', path: 'squadron/tx076emblem.png', available: true },
-	{ value: 'IN002', label: 'GLR-IN-002', type: 'Squadron', path: 'squadron/in002emblem.png', available: true },
+	{ value: 'IN002', label: 'GLR-IN-002', type: 'Squadron', path: 'squadron/in002emblem.webp', available: true },
 
 
 ];

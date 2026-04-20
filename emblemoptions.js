@@ -45,7 +45,7 @@ export const emblemOptions = [
 	{ value: 'mississippi', label: 'Mississippi', type: 'Wing', path: '', available: false },
 	{ value: 'missouri', label: 'Missouri', type: 'Wing', path: '', available: false },
 	{ value: 'montana', label: 'Montana', type: 'Wing', path: '', available: false },
-	{ value: 'national-capital', label: 'National Capital', type: 'Wing', path: '', available: false },
+	{ value: 'national-capital', label: 'National Capital', type: 'Wing', path: 'wing/natcapemblem.png', available: true },
 	{ value: 'nebraska', label: 'Nebraska', type: 'Wing', path: '', available: false },
 	{ value: 'nevada', label: 'Nevada', type: 'Wing', path: 'wing/nvemblem.png', available: true },
 	{ value: 'new-hampshire', label: 'New Hampshire', type: 'Wing', path: '', available: false },
@@ -85,6 +85,12 @@ export const emblemOptions = [
 	{ value: 'TX154', label: 'SWR-TX-154', type: 'Squadron', path: 'squadron/tx154emblem.png', available: true },
 	{ value: 'TX076', label: 'SWR-TX-076', type: 'Squadron', path: 'squadron/tx076emblem.png', available: true },
 	{ value: 'IN002', label: 'GLR-IN-002', type: 'Squadron', path: 'squadron/in002emblem.webp', available: true },
+	{ value: 'dc026', label: 'MAR-DC-026', type: 'Squadron', path: 'squadron/dc026emblem.png', available: true },
+	{ value: 'dc033', label: 'MAR-DC-033', type: 'Squadron', path: 'squadron/dc033emblem.png', available: true },
+	{ value: 'dc045', label: 'MAR-DC-045', type: 'Squadron', path: 'squadron/dc045emblem.png', available: true },
+	{ value: 'dc051', label: 'MAR-DC-051', type: 'Squadron', path: 'squadron/dc051emblem.png', available: true },
+	{ value: 'dc053', label: 'MAR-DC-053', type: 'Squadron', path: 'squadron/dc053emblem.png', available: true },
+	{ value: 'dc060', label: 'MAR-DC-060', type: 'Squadron', path: 'squadron/dc060emblem.png', available: true },
 
 
 ];

@@ -47,7 +47,7 @@ export const emblemOptions = [
 	{ value: 'montana', label: 'Montana', type: 'Wing', path: '', available: false },
 	{ value: 'national-capital', label: 'National Capital', type: 'Wing', path: '', available: false },
 	{ value: 'nebraska', label: 'Nebraska', type: 'Wing', path: '', available: false },
-	{ value: 'nevada', label: 'Nevada', type: 'Wing', path: '', available: false },
+	{ value: 'nevada', label: 'Nevada', type: 'Wing', path: 'wing/nvemblem.png', available: True },
 	{ value: 'new-hampshire', label: 'New Hampshire', type: 'Wing', path: '', available: false },
 	{ value: 'new-jersey', label: 'New Jersey', type: 'Wing', path: '', available: false },
 	{ value: 'new-mexico', label: 'New Mexico', type: 'Wing', path: 'wing/nmemblem.png', available: true },

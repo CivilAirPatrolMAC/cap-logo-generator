@@ -187,10 +187,26 @@ function initializeSearchableDropdowns() {
   const ncsaSelect = document.getElementById('ncsaSelect');
   const directorateSelect = document.getElementById('directorateSelect');
 
+  const sharedConfig = {
+    create: false,
+    allowEmptyOption: true,
+    dropdownParent: 'body',
+    copyClassesToDropdown: false,
+    hidePlaceholder: false,
+    render: {
+      no_results(data, escape) {
+        return `<div class="no-results">No results for "${escape(data.input)}"</div>`;
+      }
+    }
+  };
+
   if (emblemSelect) {
+    if (emblemSelect.tomselect) {
+      emblemSelect.tomselect.destroy();
+    }
+
     emblemDropdown = new TomSelect(emblemSelect, {
-      create: false,
-      allowEmptyOption: true,
+      ...sharedConfig,
       placeholder: 'Search emblems...',
       maxOptions: 500,
       searchField: ['text'],
@@ -199,9 +215,12 @@ function initializeSearchableDropdowns() {
   }
 
   if (ncsaSelect) {
+    if (ncsaSelect.tomselect) {
+      ncsaSelect.tomselect.destroy();
+    }
+
     ncsaDropdown = new TomSelect(ncsaSelect, {
-      create: false,
-      allowEmptyOption: true,
+      ...sharedConfig,
       placeholder: 'Search NCSAs...',
       maxOptions: 200,
       searchField: ['text']
@@ -209,9 +228,12 @@ function initializeSearchableDropdowns() {
   }
 
   if (directorateSelect) {
+    if (directorateSelect.tomselect) {
+      directorateSelect.tomselect.destroy();
+    }
+
     directorateDropdown = new TomSelect(directorateSelect, {
-      create: false,
-      allowEmptyOption: true,
+      ...sharedConfig,
       placeholder: 'Search directorates...',
       maxOptions: 100,
       searchField: ['text']

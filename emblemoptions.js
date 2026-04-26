@@ -33,7 +33,7 @@ export const emblemOptions = [
 	{ value: 'idaho', label: 'Idaho', type: 'Wing', path: '', available: false },
 	{ value: 'illinois', label: 'Illinois', type: 'Wing', path: '', available: false },
 	{ value: 'indiana', label: 'Indiana', type: 'Wing', path: '', available: false },
-	{ value: 'iowa', label: 'Iowa', type: 'Wing', path: '', available: false },
+	{ value: 'iowa', label: 'Iowa', type: 'Wing', path: 'wing/iaemblem.png', available: true },
 	{ value: 'kansas', label: 'Kansas', type: 'Wing', path: '', available: false },
 	{ value: 'kentucky', label: 'Kentucky', type: 'Wing', path: '', available: false },
 	{ value: 'louisiana', label: 'Louisiana', type: 'Wing', path: 'wing/laemblem.png', available: true },

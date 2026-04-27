@@ -16,7 +16,7 @@ export const emblemOptions = [
 	//Directorates
 	{ value: 'CadetPrograms', label: 'Cadet Programs', type: 'directorate', path: 'directorate/cadetprograms.png', available: true },
 	{ value: 'PublicAffairs', label: 'Marketing & Communications', type: 'directorate', path: 'directorate/publicaffairs.webp', available: true },
-	//{ value: 'capusaf', label: 'CAP-USAF', type: 'directorate', path: 'directorate/capusaf.png', available: true },
+	{ value: 'Conference', label: '2026 Conference', type: 'directorate', path: 'directorate/conference.png', available: true },
 
 	// Wings
 	{ value: 'alabama', label: 'Alabama', type: 'Wing', path: '', available: false },

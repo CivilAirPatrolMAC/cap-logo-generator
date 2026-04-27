@@ -13,6 +13,11 @@ const SECONDARY_PADDING_RIGHT = 14;
 const SECONDARY_GRAPHIC_OFFSET_LEFT = 380;
 const SUBORDINATE_TARGET_FILL_RATIO = 0.985;
 const SUBORDINATE_MAX_TEXT_HEIGHT = 70;
+const MIN_WORDMARK_WIDTH = 560;
+const DISK_SCALE_RATIO = 1;
+const SHIELD_SCALE_RATIO = 1;
+const NON_STANDARD_SCALE_RATIO = 0.86;
+const NON_STANDARD_MAX_WIDTH = 280;
 
 // Visible bounds detection
 const VISIBLE_BOUNDS_ALPHA_THRESHOLD = 16;
@@ -582,6 +587,76 @@ function getResponsiveFontSize(text, options) {
   );
 }
 
+function getVisiblePixelMaskStats(img, visibleBounds) {
+  const { tempCanvas, tempCtx } = createCanvasFromImage(img);
+  const imageData = tempCtx.getImageData(
+    visibleBounds.left,
+    visibleBounds.top,
+    visibleBounds.width,
+    visibleBounds.height
+  );
+  const data = imageData.data;
+
+  let visiblePixels = 0;
+  let topRowVisible = 0;
+  let bottomRowVisible = 0;
+  const width = visibleBounds.width;
+  const height = visibleBounds.height;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const a = data[i + 3];
+
+      const isVisible =
+        a > VISIBLE_BOUNDS_ALPHA_THRESHOLD &&
+        !(
+          r > VISIBLE_BOUNDS_WHITE_THRESHOLD &&
+          g > VISIBLE_BOUNDS_WHITE_THRESHOLD &&
+          b > VISIBLE_BOUNDS_WHITE_THRESHOLD
+        );
+
+      if (!isVisible) continue;
+
+      visiblePixels += 1;
+      if (y === 0) topRowVisible += 1;
+      if (y === height - 1) bottomRowVisible += 1;
+    }
+  }
+
+  return {
+    fillRatio: visiblePixels / Math.max(1, width * height),
+    topRowFillRatio: topRowVisible / Math.max(1, width),
+    bottomRowFillRatio: bottomRowVisible / Math.max(1, width)
+  };
+}
+
+function classifySecondaryGraphic(img, visibleBounds) {
+  const aspectRatio = visibleBounds.width / Math.max(1, visibleBounds.height);
+  const { fillRatio, topRowFillRatio, bottomRowFillRatio } = getVisiblePixelMaskStats(img, visibleBounds);
+
+  const looksLikeDisk =
+    aspectRatio > 0.82 &&
+    aspectRatio < 1.18 &&
+    fillRatio > 0.58 &&
+    fillRatio < 0.9 &&
+    topRowFillRatio < 0.95 &&
+    bottomRowFillRatio < 0.95;
+
+  const looksLikeShield =
+    aspectRatio > 0.72 &&
+    aspectRatio < 1.35 &&
+    topRowFillRatio > 0.55 &&
+    bottomRowFillRatio < 0.45;
+
+  if (looksLikeDisk) return 'disk';
+  if (looksLikeShield) return 'shield';
+  return 'non-standard';
+}
+
 function getSecondaryLayout(img, referenceTop, referenceBottom) {
   if (!img) {
     return {
@@ -592,18 +667,46 @@ function getSecondaryLayout(img, referenceTop, referenceBottom) {
       drawX: 0,
       drawY: 0,
       drawWidth: 0,
-      drawHeight: 0
+      drawHeight: 0,
+      emblemType: null
     };
   }
 
   const visibleBounds = getVisibleImageBounds(img);
+  const emblemType = classifySecondaryGraphic(img, visibleBounds);
   const referenceHeight = Math.max(1, referenceBottom - referenceTop);
-  const scale = referenceHeight / visibleBounds.height;
 
-  const drawWidth = visibleBounds.width * scale;
-  const drawHeight = visibleBounds.height * scale;
-  const drawX = BASE_WIDTH - SECONDARY_PADDING_RIGHT - drawWidth - SECONDARY_GRAPHIC_OFFSET_LEFT;
-  const drawY = referenceTop;
+  const scaleRatio =
+    emblemType === 'disk'
+      ? DISK_SCALE_RATIO
+      : emblemType === 'shield'
+        ? SHIELD_SCALE_RATIO
+        : NON_STANDARD_SCALE_RATIO;
+
+  const targetHeight = referenceHeight * scaleRatio;
+  let scale = targetHeight / Math.max(1, visibleBounds.height);
+  let drawWidth = visibleBounds.width * scale;
+
+  if (emblemType === 'non-standard') {
+    const widthScale = NON_STANDARD_MAX_WIDTH / Math.max(1, drawWidth);
+    if (widthScale < 1) {
+      scale *= widthScale;
+      drawWidth *= widthScale;
+    }
+  }
+
+  const rightAnchor = BASE_WIDTH - SECONDARY_PADDING_RIGHT - SECONDARY_GRAPHIC_OFFSET_LEFT;
+  const maxAllowedWidth = Math.max(1, rightAnchor - (WORDMARK_LEFT + MIN_WORDMARK_WIDTH + WORDMARK_TO_EMBLEM_GAP));
+
+  if (drawWidth > maxAllowedWidth) {
+    const shrinkScale = maxAllowedWidth / drawWidth;
+    drawWidth *= shrinkScale;
+    scale *= shrinkScale;
+  }
+
+  const scaledHeight = visibleBounds.height * scale;
+  const drawX = rightAnchor - drawWidth;
+  const drawY = referenceTop + (referenceHeight - scaledHeight) / 2;
 
   return {
     sourceX: visibleBounds.left,
@@ -613,9 +716,11 @@ function getSecondaryLayout(img, referenceTop, referenceBottom) {
     drawX,
     drawY,
     drawWidth,
-    drawHeight
+    drawHeight: scaledHeight,
+    emblemType
   };
 }
+
 
 async function renderGraphic() {
   if (!ctx || !capFont) return;

@@ -10,7 +10,6 @@ const WORDMARK_LEFT = 410;
 const DEFAULT_WORDMARK_RIGHT = 1190;
 const WORDMARK_TO_EMBLEM_GAP = 18;
 const SECONDARY_PADDING_RIGHT = 14;
-const SECONDARY_GRAPHIC_OFFSET_LEFT = 380;
 const SUBORDINATE_TARGET_FILL_RATIO = 0.985;
 const SUBORDINATE_MAX_TEXT_HEIGHT = 70;
 const MIN_WORDMARK_WIDTH = 560;
@@ -657,7 +656,7 @@ function classifySecondaryGraphic(img, visibleBounds) {
   return 'non-standard';
 }
 
-function getSecondaryLayout(img, referenceTop, referenceBottom) {
+function getSecondaryLayout(img, referenceTop, referenceBottom, leftAnchor) {
   if (!img) {
     return {
       sourceX: 0,
@@ -695,8 +694,7 @@ function getSecondaryLayout(img, referenceTop, referenceBottom) {
     }
   }
 
-  const rightAnchor = BASE_WIDTH - SECONDARY_PADDING_RIGHT - SECONDARY_GRAPHIC_OFFSET_LEFT;
-  const maxAllowedWidth = Math.max(1, rightAnchor - (WORDMARK_LEFT + MIN_WORDMARK_WIDTH + WORDMARK_TO_EMBLEM_GAP));
+  const maxAllowedWidth = Math.max(1, BASE_WIDTH - SECONDARY_PADDING_RIGHT - leftAnchor);
 
   if (drawWidth > maxAllowedWidth) {
     const shrinkScale = maxAllowedWidth / drawWidth;
@@ -705,7 +703,7 @@ function getSecondaryLayout(img, referenceTop, referenceBottom) {
   }
 
   const scaledHeight = visibleBounds.height * scale;
-  const drawX = rightAnchor - drawWidth;
+  const drawX = leftAnchor;
   const drawY = referenceTop + (referenceHeight - scaledHeight) / 2;
 
   return {
@@ -754,6 +752,8 @@ async function renderGraphic() {
 
   const referenceTop = referenceLogoLayout.visibleTop;
   const referenceBottom = referenceLogoLayout.visibleBottom;
+  const logoToWordmarkGap = Math.max(0, WORDMARK_LEFT - referenceLogoLayout.visibleRight);
+  const secondaryLeftAnchor = DEFAULT_WORDMARK_RIGHT + logoToWordmarkGap;
 
   const tracking = text.length > 20 ? 1 : 3;
   const defaultWordmarkWidth = DEFAULT_WORDMARK_RIGHT - WORDMARK_LEFT;
@@ -775,11 +775,12 @@ async function renderGraphic() {
   let secondaryLayout = getSecondaryLayout(
     secondaryGraphicImage,
     referenceTop,
-    referenceBottom
+    referenceBottom,
+    secondaryLeftAnchor
   );
 
   const wordmarkRight = secondaryGraphicImage
-    ? Math.min(DEFAULT_WORDMARK_RIGHT, secondaryLayout.drawX - WORDMARK_TO_EMBLEM_GAP)
+    ? Math.min(DEFAULT_WORDMARK_RIGHT, secondaryLayout.drawX - logoToWordmarkGap)
     : DEFAULT_WORDMARK_RIGHT;
 
   const wordmarkWidth = Math.max(100, wordmarkRight - WORDMARK_LEFT);
@@ -800,7 +801,8 @@ async function renderGraphic() {
   secondaryLayout = getSecondaryLayout(
     secondaryGraphicImage,
     referenceTop,
-    referenceBottom
+    referenceBottom,
+    secondaryLeftAnchor
   );
 
   const textColor = isWhiteVersion ? '#FFFFFF' : '#001871';

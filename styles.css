@@ -353,6 +353,28 @@ button:disabled {
   line-height: 1.5;
 }
 
+.compliance-feedback__item {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+
+.compliance-feedback__item--warning {
+  background: #fffaf0;
+  border-color: #f2d49b;
+}
+
+.compliance-feedback__item--info {
+  background: #f5f8ff;
+  border-color: #c7d7f5;
+}
+
+.compliance-feedback__item--info .compliance-feedback__warning {
+  color: #1f4a8a;
+}
+
 .compliance-feedback__fix {
   justify-self: start;
   min-height: 36px;

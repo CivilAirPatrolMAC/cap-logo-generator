@@ -4,6 +4,11 @@ const BASE_WIDTH = 2000;
 const BASE_HEIGHT = 415;
 const MAX_TEXT_LENGTH = 50;
 const CHARTER_NUMBER_PATTERN = /\b(?:[A-Z]{2,4}-)?[A-Z]{2}-\d{1,4}\b/gi;
+const CAP_REVERSED_PATTERN = /,\s*Civil Air Patrol$/i;
+const CAP_PREFIX_PATTERN = /^Civil Air Patrol\b/i;
+const SOCIAL_REGION_PATTERN = /^[A-Z]{3}\s+Civil Air Patrol$/i;
+const SOCIAL_WING_PATTERN = /^(?:[A-Z]{2}|[A-Z]{2}WG)\s+Civil Air Patrol$/i;
+const SOCIAL_SQUADRON_PATTERN = /^.+\sCAP$/i;
 
 // Layout tuning
 const BASE_LOGO_SCALE_MULTIPLIER = 1.08;
@@ -36,7 +41,7 @@ let directorateDropdown = null;
 let secondaryGraphicImage = null;
 let secondaryGraphicSource = null; // 'upload' | 'dropdown' | 'ncsa' | 'directorate' | null
 let secondaryGraphicOriginalUpload = null;
-let hasComplianceWarning = false;
+let hasBlockingComplianceWarning = false;
 
 const SECONDARY_SOURCE_CONFIG = {
   dropdown: { selectId: 'emblemSelect', dropdownInstance: () => emblemDropdown },
@@ -546,43 +551,136 @@ function removeCharterNumberFromText(value, charterNumber) {
   return withoutCharter.replace(/\s{2,}/g, ' ').trim();
 }
 
+function buildAbbreviationSuggestion(value) {
+  const abbreviationMap = [
+    { from: /\bComposite Squadron\b/i, to: 'Comp. Sq.', label: "Use 'Comp. Sq.'" },
+    { from: /\bCadet Squadron\b/i, to: 'Cdt. Sq.', label: "Use 'Cdt. Sq.'" },
+    { from: /\bSenior Squadron\b/i, to: 'Sr. Sq.', label: "Use 'Sr. Sq.'" },
+    { from: /\bSquadron\b/i, to: 'Sq.', label: "Use 'Sq.'" },
+    { from: /\bGroup\b/i, to: 'Gp.', label: "Use 'Gp.'" }
+  ];
+
+  for (const item of abbreviationMap) {
+    if (!item.from.test(value)) continue;
+    return {
+      severity: 'info',
+      blocking: false,
+      message: 'Abbreviations are allowed for squadrons and groups when needed.',
+      fixLabel: `${item.label}?`,
+      fixedValue: value.replace(item.from, item.to)
+    };
+  }
+
+  return null;
+}
+
+function buildReversedNameSuggestion(value) {
+  if (!CAP_PREFIX_PATTERN.test(value) || CAP_REVERSED_PATTERN.test(value) || value.includes(',')) {
+    return null;
+  }
+
+  const baseName = value.replace(/^Civil Air Patrol\s*/i, '').trim();
+  if (!baseName) return null;
+
+  return {
+    severity: 'info',
+    blocking: false,
+    message: 'For search optimization or social media, the full unit name may be reversed.',
+    fixLabel: "Use reversed format?",
+    fixedValue: `${baseName}, Civil Air Patrol`
+  };
+}
+
+function buildNamingPrefixRule(value) {
+  const isAllowedFormat =
+    CAP_PREFIX_PATTERN.test(value) ||
+    CAP_REVERSED_PATTERN.test(value) ||
+    SOCIAL_REGION_PATTERN.test(value) ||
+    SOCIAL_WING_PATTERN.test(value) ||
+    SOCIAL_SQUADRON_PATTERN.test(value);
+
+  if (isAllowedFormat || !value) return null;
+
+  return {
+    severity: 'warning',
+    blocking: true,
+    message: 'Use “Civil Air Patrol” with the official subordinate name (or an approved shorthand format).',
+    fixLabel: "Prepend 'Civil Air Patrol'?",
+    fixedValue: `Civil Air Patrol ${value}`.replace(/\s{2,}/g, ' ').trim()
+  };
+}
+
+function getComplianceRules(value) {
+  const rules = [];
+  const charterMatches = Array.from(value.matchAll(CHARTER_NUMBER_PATTERN));
+  const charterNumber = charterMatches[0]?.[0] ?? null;
+
+  if (charterNumber) {
+    rules.push({
+      severity: 'warning',
+      blocking: true,
+      message: 'Charter numbers should not appear in logos.',
+      fixLabel: `Remove '${charterNumber}'?`,
+      fixedValue: removeCharterNumberFromText(value, charterNumber)
+    });
+  }
+
+  const namingPrefixRule = buildNamingPrefixRule(value);
+  if (namingPrefixRule) rules.push(namingPrefixRule);
+
+  const abbreviationSuggestion = buildAbbreviationSuggestion(value);
+  if (abbreviationSuggestion) rules.push(abbreviationSuggestion);
+
+  const reversedSuggestion = buildReversedNameSuggestion(value);
+  if (reversedSuggestion) rules.push(reversedSuggestion);
+
+  return rules;
+}
+
 function updateComplianceFeedback() {
   const subordinateTextInput = document.getElementById('subordinateText');
   const complianceFeedback = document.getElementById('complianceFeedback');
   if (!subordinateTextInput || !complianceFeedback) return;
 
   const inputValue = subordinateTextInput.value.trim();
-  const charterMatches = Array.from(inputValue.matchAll(CHARTER_NUMBER_PATTERN));
-  const charterNumber = charterMatches[0]?.[0] ?? null;
-  hasComplianceWarning = Boolean(charterNumber);
+  const rules = getComplianceRules(inputValue);
+  hasBlockingComplianceWarning = rules.some((rule) => rule.blocking);
 
-  setComplianceBlockedState(hasComplianceWarning);
+  setComplianceBlockedState(hasBlockingComplianceWarning);
 
   complianceFeedback.innerHTML = '';
   complianceFeedback.classList.remove('is-visible');
 
-  if (!charterNumber) return;
+  if (rules.length === 0) return;
 
   complianceFeedback.classList.add('is-visible');
 
-  const warning = document.createElement('p');
-  warning.className = 'compliance-feedback__warning';
-  warning.textContent = '⚠️ Charter numbers should not appear in logos.';
-  complianceFeedback.appendChild(warning);
+  for (const rule of rules) {
+    const item = document.createElement('div');
+    item.className = `compliance-feedback__item compliance-feedback__item--${rule.severity}`;
 
-  const fixButton = document.createElement('button');
-  fixButton.type = 'button';
-  fixButton.className = 'compliance-feedback__fix';
-  fixButton.textContent = `Remove '${charterNumber}'?`;
-  fixButton.addEventListener('click', () => {
-    subordinateTextInput.value = removeCharterNumberFromText(subordinateTextInput.value, charterNumber);
-    updateCharacterCounter();
-    updateComplianceFeedback();
-    renderGraphic();
-    subordinateTextInput.focus();
-  });
+    const warning = document.createElement('p');
+    warning.className = 'compliance-feedback__warning';
+    warning.textContent = `${rule.severity === 'warning' ? '⚠️' : 'ℹ️'} ${rule.message}`;
+    item.appendChild(warning);
 
-  complianceFeedback.appendChild(fixButton);
+    if (rule.fixedValue && rule.fixedValue !== subordinateTextInput.value) {
+      const fixButton = document.createElement('button');
+      fixButton.type = 'button';
+      fixButton.className = 'compliance-feedback__fix';
+      fixButton.textContent = rule.fixLabel || 'Apply suggestion';
+      fixButton.addEventListener('click', () => {
+        subordinateTextInput.value = rule.fixedValue;
+        updateCharacterCounter();
+        updateComplianceFeedback();
+        renderGraphic();
+        subordinateTextInput.focus();
+      });
+      item.appendChild(fixButton);
+    }
+
+    complianceFeedback.appendChild(item);
+  }
 }
 
 function setComplianceBlockedState(isBlocked) {
@@ -900,7 +998,7 @@ async function renderGraphic() {
 }
 
 function downloadGraphic() {
-  if (hasComplianceWarning) return;
+  if (hasBlockingComplianceWarning) return;
 
   const link = document.createElement('a');
   link.download = 'Graphic.png';

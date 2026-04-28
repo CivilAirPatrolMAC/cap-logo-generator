@@ -23,6 +23,7 @@ const NON_STANDARD_MAX_WIDTH = 280;
 const VISIBLE_BOUNDS_ALPHA_THRESHOLD = 16;
 const VISIBLE_BOUNDS_WHITE_THRESHOLD = 245;
 const VISIBLE_BOUNDS_PADDING = 2;
+const CHARTER_NUMBER_PATTERN = /\b(?:[A-Z]{2,4}-)+\d{1,4}\b/i;
 
 let canvas;
 let ctx;
@@ -35,6 +36,7 @@ let directorateDropdown = null;
 let secondaryGraphicImage = null;
 let secondaryGraphicSource = null; // 'upload' | 'dropdown' | 'ncsa' | 'directorate' | null
 let secondaryGraphicOriginalUpload = null;
+let activeComplianceWarnings = [];
 
 const SECONDARY_SOURCE_CONFIG = {
   dropdown: { selectId: 'emblemSelect', dropdownInstance: () => emblemDropdown },
@@ -64,6 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   populateDirectorateSelect();
   initializeSearchableDropdowns();
   updateCharacterCounter();
+  runComplianceChecks();
 
   try {
     await loadFont();
@@ -525,7 +528,81 @@ function handleSubordinateTextInput(event) {
   }
 
   updateCharacterCounter();
+  runComplianceChecks();
   renderGraphic();
+}
+
+function sanitizeSubordinateText(text) {
+  return text.replace(/\s{2,}/g, ' ').trim();
+}
+
+function getComplianceWarnings(inputText) {
+  const warnings = [];
+  const charterMatch = inputText.match(CHARTER_NUMBER_PATTERN);
+
+  if (charterMatch) {
+    const charterValue = charterMatch[0];
+    warnings.push({
+      type: 'charter-number',
+      message: '⚠️ “Charter numbers should not appear in logos.”',
+      fixLabel: `Remove '${charterValue}'?`,
+      applyFix: () => {
+        const subordinateTextInput = document.getElementById('subordinateText');
+        if (!subordinateTextInput) return;
+
+        subordinateTextInput.value = sanitizeSubordinateText(
+          subordinateTextInput.value.replace(charterValue, ' ')
+        );
+
+        updateCharacterCounter();
+        runComplianceChecks();
+        renderGraphic();
+      }
+    });
+  }
+
+  return warnings;
+}
+
+function updateComplianceUI(warnings) {
+  const warningsContainer = document.getElementById('complianceWarnings');
+  const previewFrame = document.querySelector('.canvas-frame');
+  const downloadButton = document.getElementById('download');
+  if (!warningsContainer || !previewFrame || !downloadButton) return;
+
+  warningsContainer.innerHTML = '';
+  warningsContainer.hidden = warnings.length === 0;
+
+  for (const warning of warnings) {
+    const warningRow = document.createElement('div');
+    warningRow.className = 'compliance-warning';
+
+    const warningMessage = document.createElement('p');
+    warningMessage.textContent = warning.message;
+    warningRow.appendChild(warningMessage);
+
+    if (warning.fixLabel && typeof warning.applyFix === 'function') {
+      const fixButton = document.createElement('button');
+      fixButton.type = 'button';
+      fixButton.className = 'compliance-fix-button';
+      fixButton.textContent = warning.fixLabel;
+      fixButton.addEventListener('click', warning.applyFix);
+      warningRow.appendChild(fixButton);
+    }
+
+    warningsContainer.appendChild(warningRow);
+  }
+
+  const isBlocked = warnings.length > 0;
+  previewFrame.classList.toggle('preview-blocked', isBlocked);
+  downloadButton.disabled = isBlocked;
+}
+
+function runComplianceChecks() {
+  const subordinateTextInput = document.getElementById('subordinateText');
+  const inputText = subordinateTextInput?.value || '';
+  activeComplianceWarnings = getComplianceWarnings(inputText);
+  updateComplianceUI(activeComplianceWarnings);
 }
 
 function measureTrackedText(text, tracking) {
@@ -829,6 +906,8 @@ async function renderGraphic() {
 }
 
 function downloadGraphic() {
+  if (activeComplianceWarnings.length > 0) return;
+
   const link = document.createElement('a');
   link.download = 'Graphic.png';
   link.href = canvas.toDataURL('image/png');

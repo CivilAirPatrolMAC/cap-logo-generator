@@ -408,6 +408,55 @@ button:disabled {
   gap: 0.35rem;
 }
 
+.compliance-panel {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-alt);
+}
+
+.compliance-panel__rule {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.55;
+  font-size: 0.92rem;
+}
+
+.compliance-warnings {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.compliance-warning {
+  border: 1px solid var(--warning-border);
+  background: var(--warning-bg);
+  border-radius: 10px;
+  padding: 0.75rem 0.85rem;
+}
+
+.compliance-warning p {
+  margin: 0;
+  color: #5e4300;
+  font-weight: 600;
+}
+
+.compliance-fix-button {
+  margin-top: 0.55rem;
+  min-height: 34px;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #b4914c;
+  background: #fff;
+  color: #5e4300;
+  font-weight: 700;
+}
+
+.compliance-fix-button:hover {
+  background: #fffaf0;
+}
+
 .preview-surface {
   padding: 1.25rem;
   border: 1px solid var(--border);
@@ -434,6 +483,11 @@ button:disabled {
 
 #canvas.white-preview {
   background-color: #d9d9d9;
+}
+
+.canvas-frame.preview-blocked {
+  opacity: 0.38;
+  filter: grayscale(0.3);
 }
 
 /* Buttons */

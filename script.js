@@ -36,6 +36,7 @@ let directorateDropdown = null;
 let secondaryGraphicImage = null;
 let secondaryGraphicSource = null; // 'upload' | 'dropdown' | 'ncsa' | 'directorate' | null
 let secondaryGraphicOriginalUpload = null;
+let hasComplianceWarning = false;
 
 const SECONDARY_SOURCE_CONFIG = {
   dropdown: { selectId: 'emblemSelect', dropdownInstance: () => emblemDropdown },
@@ -553,6 +554,9 @@ function updateComplianceFeedback() {
   const inputValue = subordinateTextInput.value.trim();
   const charterMatches = Array.from(inputValue.matchAll(CHARTER_NUMBER_PATTERN));
   const charterNumber = charterMatches[0]?.[0] ?? null;
+  hasComplianceWarning = Boolean(charterNumber);
+
+  setComplianceBlockedState(hasComplianceWarning);
 
   complianceFeedback.innerHTML = '';
   complianceFeedback.classList.remove('is-visible');
@@ -579,6 +583,20 @@ function updateComplianceFeedback() {
   });
 
   complianceFeedback.appendChild(fixButton);
+}
+
+function setComplianceBlockedState(isBlocked) {
+  const previewSurface = document.getElementById('previewSurface');
+  const downloadButton = document.getElementById('download');
+
+  previewSurface?.classList.toggle('is-compliance-blocked', isBlocked);
+
+  if (!downloadButton) return;
+
+  downloadButton.disabled = isBlocked;
+  downloadButton.title = isBlocked
+    ? 'Resolve compliance warnings before downloading.'
+    : '';
 }
 
 function measureTrackedText(text, tracking) {
@@ -882,6 +900,8 @@ async function renderGraphic() {
 }
 
 function downloadGraphic() {
+  if (hasComplianceWarning) return;
+
   const link = document.createElement('a');
   link.download = 'Graphic.png';
   link.href = canvas.toDataURL('image/png');

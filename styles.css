@@ -448,6 +448,12 @@ button:disabled {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: linear-gradient(180deg, #fbfdff 0%, #f5f8fb 100%);
+  transition: opacity var(--transition), filter var(--transition);
+}
+
+.preview-surface.is-compliance-blocked {
+  opacity: 0.5;
+  filter: grayscale(1);
 }
 
 .canvas-frame {

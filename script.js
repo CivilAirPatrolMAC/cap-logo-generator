@@ -565,7 +565,7 @@ function getComplianceWarnings(inputText) {
 }
 
 function updateComplianceUI(warnings) {
-  const warningsContainer = document.getElementById('complianceWarnings');
+  const warningsContainer = document.getElementById('validationWarnings');
   const previewFrame = document.querySelector('.canvas-frame');
   const downloadButton = document.getElementById('download');
   if (!warningsContainer || !previewFrame || !downloadButton) return;

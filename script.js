@@ -3,6 +3,7 @@ import { emblemOptions } from './emblemoptions.js';
 const BASE_WIDTH = 2000;
 const BASE_HEIGHT = 415;
 const MAX_TEXT_LENGTH = 50;
+const CHARTER_NUMBER_PATTERN = /\b(?:[A-Z]{2,4}-)?[A-Z]{2}-\d{1,4}\b/gi;
 
 // Layout tuning
 const BASE_LOGO_SCALE_MULTIPLIER = 1.08;
@@ -64,6 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   populateDirectorateSelect();
   initializeSearchableDropdowns();
   updateCharacterCounter();
+  updateComplianceFeedback();
 
   try {
     await loadFont();
@@ -525,7 +527,58 @@ function handleSubordinateTextInput(event) {
   }
 
   updateCharacterCounter();
+  updateComplianceFeedback();
   renderGraphic();
+}
+
+function escapeRegexValue(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function removeCharterNumberFromText(value, charterNumber) {
+  if (!charterNumber) return value;
+
+  const safeToken = escapeRegexValue(charterNumber);
+  const tokenRegex = new RegExp(`\\s*${safeToken}\\s*`, 'i');
+  const withoutCharter = value.replace(tokenRegex, ' ');
+
+  return withoutCharter.replace(/\s{2,}/g, ' ').trim();
+}
+
+function updateComplianceFeedback() {
+  const subordinateTextInput = document.getElementById('subordinateText');
+  const complianceFeedback = document.getElementById('complianceFeedback');
+  if (!subordinateTextInput || !complianceFeedback) return;
+
+  const inputValue = subordinateTextInput.value.trim();
+  const charterMatches = Array.from(inputValue.matchAll(CHARTER_NUMBER_PATTERN));
+  const charterNumber = charterMatches[0]?.[0] ?? null;
+
+  complianceFeedback.innerHTML = '';
+  complianceFeedback.classList.remove('is-visible');
+
+  if (!charterNumber) return;
+
+  complianceFeedback.classList.add('is-visible');
+
+  const warning = document.createElement('p');
+  warning.className = 'compliance-feedback__warning';
+  warning.textContent = '⚠️ Charter numbers should not appear in logos.';
+  complianceFeedback.appendChild(warning);
+
+  const fixButton = document.createElement('button');
+  fixButton.type = 'button';
+  fixButton.className = 'compliance-feedback__fix';
+  fixButton.textContent = `Remove '${charterNumber}'?`;
+  fixButton.addEventListener('click', () => {
+    subordinateTextInput.value = removeCharterNumberFromText(subordinateTextInput.value, charterNumber);
+    updateCharacterCounter();
+    updateComplianceFeedback();
+    renderGraphic();
+    subordinateTextInput.focus();
+  });
+
+  complianceFeedback.appendChild(fixButton);
 }
 
 function measureTrackedText(text, tracking) {
